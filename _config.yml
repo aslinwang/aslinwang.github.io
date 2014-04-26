@@ -1,0 +1,6 @@
+markdown: rdiscount
+permalink: /:year/:month/:title/
+url: http://aslinwang.github.io
+author: aslinwang
+pygments: true
+paginate: 24
