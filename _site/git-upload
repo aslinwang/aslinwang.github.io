@@ -1,0 +1,4 @@
+#!/bin/sh
+git add ./_site/.
+git commit -am "$1"
+git push origin master
