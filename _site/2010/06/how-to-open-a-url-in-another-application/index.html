@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="aslinwang" />
+    <title>How to open a url in another application | aslinwang</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAD/APr59wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiIiIiIiAAAiIiIiIiIAACIiIiIiIgERERERERIiAREREREREiIBERERERESIgERIiIiERIiAREiIiIREiIBESIhERESIgERIiERERIiAREiIiIiIiIBESIiIiIiIgERIiIiIiIiAREREREREAABEREREREQAAERERERERAADgAQAA4AEAAOABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA8AAAAPAAAADwAA" rel="icon" type="image/x-icon" />
+    <link href="/feed/" rel="alternate" title="aslinwang" type="application/atom+xml" />
+    
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <link href='/media/webfonts/ss-social.css' rel='stylesheet'>
+    <link href='/media/webfonts/ss-standard.css' rel='stylesheet'>
+    <link href="/media/css/screen.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <div class="buttons">
+          <a href="/" class="ss-icon" title="Go to homepage">home</a>
+          <a href="/categories" class="ss-icon" title="Category" >list</a>
+          <a href="/tags" class="ss-icon" title="Tag Cloud" >tags</a>
+          <a href="/guestbook" class="ss-icon" title="Guest Book" >talk</a>
+          <a href="/about" class="ss-icon" title="About" >user</a>
+          <a href="/feed" class="ss-icon" title="Subscribe by RSS" >rss</a>
+        </div>
+        <h1>How to open a url in another application</h1>
+        </header>
+        <hr>
+        <article class="content">
+        <section class="post">
+<p>我们经常希望在网页中通过特定schema的连接关联打开相关的程序进行一些操作,比如qq的聊天链接等.
+在Cocoa中,这个操作属于Launch Services的一部分.
+还有我们平时文档关联特定的程序进行打开这样的操作也属于Launch Services的范畴.
+在系统中存在一个Launch Services Database,它包含了”什么样的文件可以通过什么样的程序打开,或者什么样的URL可以通过什么样的程序打开的” 这些信息.</p>
+
+<p>下面我们还是来重点谈URL和Application关联的问题.</p>
+
+<h4>1.URL注册</h4>
+
+<p>首先我们得让程序告诉操作系统程序自己所关联的URL的schema.
+这个我们可以在Info.plist中添加相关信息.</p>
+
+<div class="highlight"><pre><code class="xml">    <span class="nt">&lt;key&gt;</span>CFBundleURLTypes<span class="nt">&lt;/key&gt;</span>
+    <span class="nt">&lt;array&gt;</span>
+        <span class="nt">&lt;dict&gt;</span>
+            <span class="nt">&lt;key&gt;</span>CFBundleURLName<span class="nt">&lt;/key&gt;</span>
+            <span class="nt">&lt;string&gt;</span>MyURLHandler<span class="nt">&lt;/string&gt;</span>
+            <span class="nt">&lt;key&gt;</span>CFBundleURLSchemes<span class="nt">&lt;/key&gt;</span>
+            <span class="nt">&lt;array&gt;</span>
+                <span class="nt">&lt;string&gt;</span>myurl<span class="nt">&lt;/string&gt;</span>
+            <span class="nt">&lt;/array&gt;</span>
+        <span class="nt">&lt;/dict&gt;</span>
+    <span class="nt">&lt;/array&gt;</span>
+</code></pre></div>
+
+
+<p>添加这些之后,重新编译运行程序,系统后台运行的程序会将刚刚的对应的url和程序的关联信息写进Launch Services Database,这个时候,页面中的 myurl://xxx 这样的url会通过你的程序来处理了.
+注:</p>
+
+<p>CFBundleURLTypes中的CF的意思是Core Foundation</p>
+
+<p>Mac OS X通过如下几种方式进行注册.
+1. 当用户登录后,会有一个后台运行的程序对Application目录进行扫描,发现文档绑定或者url绑定的信息,并将其复制到Launch Services Database
+2. 当打开一个新的文件夹,然后Finder发现某个Application,Finder会将相关程序的关联信息写入Launch Services Database
+3. 当用户打开某个没有关联的文档的时候,系统会弹出一个程序选择对话框,选择之后,会将相关关联写入Launch Services Database</p>
+
+<h4>2.URL接受和处理</h4>
+
+<p>刚刚我们对URL进行注册了,点击之后,系统会发送一个事件消息给程序,所以第一我们得设置一个处理器来接受相关事件.
+下面的代码一般我们写在AppDelegate中,比如可以写在applicationDidFinishLaunching函数中.当程序启动完成时运行这段代码.</p>
+
+<div class="highlight"><pre><code class="objc">    <span class="p">[[</span><span class="n">NSAppleEventManager</span> <span class="n">sharedAppleEventManager</span><span class="p">]</span>  
+     <span class="n">setEventHandler</span><span class="o">:</span><span class="n">self</span>  
+     <span class="n">andSelector</span><span class="o">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">handleURLEvent</span><span class="o">:</span><span class="n">withReplyEvent</span><span class="o">:</span><span class="p">)</span>  
+     <span class="n">forEventClass</span><span class="o">:</span><span class="n">kInternetEventClass</span>  
+     <span class="n">andEventID</span><span class="o">:</span><span class="n">kAEGetURL</span><span class="p">];</span>
+</code></pre></div>
+
+
+<p>然后定义handleURLEvent:withReplyEvent:这个方法</p>
+
+<div class="highlight"><pre><code class="objc"><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">handleURLEvent:</span><span class="p">(</span><span class="n">NSAppleEventDescriptor</span><span class="o">*</span><span class="p">)</span><span class="nv">event</span> <span class="nf">withReplyEvent:</span><span class="p">(</span><span class="n">NSAppleEventDescriptor</span><span class="o">*</span><span class="p">)</span><span class="nv">replyEvent</span>
+<span class="p">{</span>
+    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;The url is %@&quot;</span><span class="p">,[</span><span class="n">event</span> <span class="n">descriptorAtIndex</span><span class="o">:</span><span class="mi">1</span><span class="p">]</span> <span class="n">stringValue</span><span class="p">]);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://geeklu.com">aslinwang</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2010-06-16">2010-06-16</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#programming" title="programming">programming</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#objc" title="objc">objc</a>&nbsp;
+  
+  <a href="/tags/#Cocoa" title="Cocoa">Cocoa</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
+    var disqus_url = 'http://aslinwang.github.io/2010/06/how-to-open-a-url-in-another-application/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        url = 'http://aslinwang.github.io/2010/06/continuous-monitor-tail-fails/';
+        
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://aslinwang.github.io/2010/06/jsch-pure-java-implementation-of-ssh2/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> | Copyright 2008 - 2014 by <a href="http://aslinwang.github.io/">aslinwang</a> | Template by <a href="http://geeklu.com/about/">Luke</a> | <span class="label label-info">2014-04-26 20:07:36</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

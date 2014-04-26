@@ -1,0 +1,985 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <rss version="2.0"
+        xmlns:content="http://purl.org/rss/1.0/modules/content/"
+        xmlns:atom="http://www.w3.org/2005/Atom"
+  >
+  <channel>
+    <title>aslinwang</title>
+    <link href="http://aslinwang.github.io/feed/" rel="self" />
+    <link href="http://geeklu.com" />
+    <lastBuildDate>2014-04-26T20:07:36+08:00</lastBuildDate>
+    <webMaster>kejinlu@gmail.com</webMaster>
+    
+    <item>
+      <title>谈谈objc公用库</title>
+      <link href="http://aslinwang.github.io/2014/02/objc-lib/"/>
+      <pubDate>2014-02-10T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2014/02/objc-lib</guid>
+      <content:encoded><![CDATA[<h2>一.概述</h2>
+
+<p>objc公用库的使用场景还是比较常见的，iOS SDK本身就是公用库的集合；一些开放平台为了方便开发者开发第三方的app，提供相应平台的sdk；还有一个场景就是比较大的公司一般会有多个甚至几十个app，各个app之间势必会有重复的逻辑，为了 “提升效率”“安全性” 或者业务指标，会推一些公用的库供内部各个app使用。 <br/>
+公用库本质上就是一些可重用逻辑的集合，是“分而治之”的一种途径，其出现的形式可以是源码亦或是二进制。 <br/>
+公用库也需要理清自己的依赖关系，比如依赖系统SDK的哪些库的哪些接口（决定了公用库适用的系统版本），依赖哪些第三方的库。不过你想把一个东西拿出去给别人用，那你就得想方设法去减少不必要的依赖。 <br/>
+作为一个公用库的开发者，提供公用库给别人使用时，需要站在使用者的角度去思考问题，公用库的接口以及接入使用的繁简体现了公用库作者的职业道德和素养。</p>
+
+<h2>二.设计与实现</h2>
+
+<p>第一步当然是明确公用库的目标，要做什么，不做什么，一二三四列出来，并在后继的实现中最大可能地坚持目标原则。  <br/>
+项目的构建也有几种选择：</p>
+
+<ul>
+<li>使用XCode的"Cocoa Touch Static Library"项目模板新建项目，target为一个静态库</li>
+<li>安装 <a href="https://github.com/kstenerud/iOS-Universal-Framework">iOS Universal Framework</a> ,然后在XCode中通过其提供的"Static iOS Framework"项目模板新建项目，其target为framework库</li>
+</ul>
+
+
+<p>另外你可以在上面的基础上，通过<a href="http://cocoapods.org/">cocoapods</a>来管理你自己的公用库的依赖。</p>
+
+<p>在实现的时候，公用库自身的源码全都放到某个目录中或者其子目录中(是指那些可以直接拷贝出去使用的源码，不包括自身编译所依赖的文件，比如prefix.pch)。 <br/>
+头文件只暴漏那些必须的，在实现库的时候能够在实现文件中进行引入的的则在实现文件中进行引入，如果在需要暴漏的头文件中引入另一个头文件，那么这另一个头文件也必须要暴漏出来。   <br/>
+另一个常见的问题便是接口的方法声明不遵循objc的语言规范，给人以山寨的感觉。还是建议公用库的实现最好有一个当前语言的老手带着做，熟悉当前语言的规范和常用的范式，比如何时使用delegate，何时使用block。 <br/>
+还有就是在实现的时候尽可能少地引入第三方的依赖，如果确实需要引入，那么编译的时候千万别把公用库自身依赖的第三方的内容当成自己的一部分，如果你很变态，硬要把第三方的内容搞成自己的一部分，那么你至少得修改这些依赖的相关类的类名，静态变量名，如果是category，还得修改其方法名。    <br/>
+最后就是你得坚持良好的注释和文档 ，某个方法 如有特殊的需要注意的点，则需要注释说明，你还得提供一个README文件，用于描述当前库的目的，以及各个接口的使用范例。</p>
+
+<h2>三.分发与集成</h2>
+
+<p>其实在公用库构建的初期，你就得想好分发的方式。一种好的分发方式可以大大降低公用库集成使用的成本。 <br/>
+一个公用库要给别人用，无非就两种形式：源码或者二进制格式（额外提供头文件，资源文件），源码的形式，方便使用者进行调试，二进制格式则适用于那些不方便公开源码的公用库。</p>
+
+<ul>
+<li>先谈谈源码的形式，源码一般放在某个版本控制库中
+
+<ul>
+<li>在以前很多人就直接下载下来将相关类拷贝进自己的工程中，然后直接使用，这样的坏处就是没法明确知道此公用库的版本以及此库作者做了更新后，你还得手动拷贝一次，比较麻烦。</li>
+<li>后来就开始用git的submodule，主工程无需将某个公用库的源码放到自己的git库中了，而且三方库可以方便的进行更新切换分支等操作，这种情况下最好是将主工程依赖此三方库项目编译出来的target，比如静态库，这样当公用库有增删文件的时候，无需修改主工程项目文件。</li>
+<li>最近我比较推荐的就是cocoapods的方式了，它的主要优点就是依赖关系的管理，当然其本质上也是将公用库编译成静态库，然后使得主工程依赖此静态库。</li>
+</ul>
+</li>
+<li>二进制的形式需要谈的东西还是比较多的，二进制一般有两种方式
+
+<ul>
+<li>一种是简单的静态库，也就是常见的 xxx.a 文件, 只不过真正使用的时候需要提供头文件或者资源文件，一般资源文件都是以bundle的形式提供。XCode中默认提供的就是这种方式，只不过你创建公用库项目的时候编译出来静态库只支持特定的一种硬件架构体系，如果你想生成一个Universal的静态库的话，那么你得通过工具来将多个静态库进行合并。</li>
+<li>另一种便是framework的方式，此方式XCode默认并不支持。你在iOS开发的过程中应该接触过不少framework库，这种库都是系统自带的库，供系统中运行的所有app共享使用。framework库的好处就是不但可以包含二进制文件，还可以包含头文件，资源文件等，甚至可以支持多个版本。各个app所使用的自己的公用库，最终都需要link进可执行文件件的，所以本质上还是一个静态库。所以有一些第三方的方案比如<a href="https://github.com/kstenerud/iOS-Universal-Framework">iOS Universal Framework</a>，能够帮助你使用XCode来编译出framework库，当然其中还是有不少坑，比如XCode并不识别framework中的资源文件所以有了Embedded Framework的方案，虽然framework最终只是一个bundle（一个文件夹，里面按照规定的目录结构方式文件），但是对XCode而言这样的target还是有真假（Real／Fake）之分，只有真的情况下XCode主工程在添加依赖的时候才能够选择此公用库项目的framework涨的target。</li>
+<li>cocoapods也是支持管理二进制格式的，在podspec中通过vendored_frameworks或者vendored_libraries来指定你需要分发的库</li>
+</ul>
+</li>
+</ul>
+
+
+<p>当然不管你以何种方式分发你的公用库，你都得明确声明此公用库适用的系统版本，依赖哪些系统SDK的框架或者静态库，依赖哪些第三方的库以及对应的版本，这是对自己负责也是对别人负责。 <br/>
+在使用公用库的时候，XCode都是通过header search path来寻找静态库的头文件的，通过framework search path来寻找framework的，当使用cocoapods来管理的时候，这些环境变量的设置都是自动帮你完成的，在其生成的xcconfig文件中。</p>
+
+<h2>四.和库相关的几个命令</h2>
+
+<p>下面几个命令都是和二进制库相关的，这些二进制文件可以叫做对象文件，在Mac或者iOS平台中用的都是<a href="http://zh.wikipedia.org/wiki/Mach-O">Mach-O</a>(Mach Object)，所以这些命令其实都是读取或者操作Mach Object的，你可以通过<code>man</code>来查看相应的详情用户手册。</p>
+
+<ul>
+<li>nm <br/>
+ display name list (symbol table)，其实就是把对象文件中的相关符号标识都列出来</li>
+<li>otool <br/>
+ otool，顾名思义就是object tool，比其nm来说，其功能更强大，可以查看对象文件的方方面面，比如展示对象文件的Mach Header，用到了哪些共享库（shared libraries），或者数据段内容等。</li>
+<li>lipo  <br/>
+ create or operate on universal files，此命令主要是帮你查看或者创建支付多平台的静态库的。比如将两台不同平台的静态进行合并。</li>
+</ul>
+
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>Git fork workflow</title>
+      <link href="http://aslinwang.github.io/2013/06/git-fork-workflow/"/>
+      <pubDate>2013-06-23T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/06/git-fork-workflow</guid>
+      <content:encoded><![CDATA[<p>1.Fork   <br/>
+2.Add upstream repo</p>
+
+<pre><code>git clone &lt;forked repo url&gt;
+cd &lt;repo foder&gt;
+git remote add upstream &lt;origin repo url&gt;
+</code></pre>
+
+<p>3.Fetch upsteam and merge</p>
+
+<pre><code>git checkout master
+git fetch upstream
+git merge upstream/master
+git push origin master
+</code></pre>
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>Cocoapods 101</title>
+      <link href="http://aslinwang.github.io/2013/06/cocoapods-101/"/>
+      <pubDate>2013-06-23T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/06/cocoapods-101</guid>
+      <content:encoded><![CDATA[<p><img  width="140" height="140" src="http://ww1.sinaimg.cn/bmiddle/65cc0af7jw1e5wzbyfdkgj20bo0bogm8.jpg"/></p>
+
+<h3>一.cocoapods介绍</h3>
+
+<p>在开发iOS的程序的时候，经常会用到第三方的库，一般的做法就是直接将其源码拷贝到自己的项目中，或者将其静态库拷贝到项目中进行使用。当这个三方库的版本更新了，还需要重新进行拷贝复制，非常不方便，且库与库之间的依赖也不好管理，cocoapods的出现便是解决这一问题的。cocoapods是一个ruby实现的objc三方库依赖管理工具，可以看得出，cocoapods在很多地方借鉴了ruby的包管理工具gem。
+每一个三方库的版本在cocoapods中叫做一个pod，每一个pod对应一个描述文件，这个描述文件叫做podspec文件，其中描述了这个pod的名称，版本，许可证，主页，作者，源码库位置，平台，所依赖的其他三方库以及系统的framework，是否arc等信息。cocoapods官方默认支持的所有podspec都放在github上，地址为 <a href="https://github.com/CocoaPods/Specs">https://github.com/CocoaPods/Specs</a>，你也可以加入自定义的podspec库，以引入官方库中没有的podspec，添加自定义podspec库的方式为</p>
+
+<pre><code>$ pod repo add &lt;repo name&gt; &lt;git repo url&gt;
+</code></pre>
+
+<p>执行上条命令之后，pod便会将自定义的库clone到 <code>~/.cocoapods/&lt;repo name&gt;</code></p>
+
+<h3>二.cocoapods安装</h3>
+
+<p>cocoapods是使用ruby写的，可以通过gem进行安装，所以第一步你需要整好自己的ruby环境，安装cocoapods。在Mac上系统默认已经安装了ruby，不过版本比较老了，所以在实际使用中还是会自己安装ruby的。而且为了方便日后切换ruby的版本，一般会通过ruby的管理工具进行ruby的安装，很多人喜欢使用RVM，而我更喜欢轻量级的rbenv,首先得安装好XCode及其命令行工具，这样就准备好了Mac上的编译环境。
+然后安装rbenv,其实就是讲rbenv的库clone到本地，以及相应的插件</p>
+
+<pre><code>git clone git://github.com/sstephenson/rbenv.git ~/.rbenv
+git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+git clone git://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
+</code></pre>
+
+<p>假设你命令行使用了zsh，如果没有使用则推荐你使用，讲rbenv的path加入到环境变量中</p>
+
+<pre><code>echo 'export PATH="$HOME/.rbenv/bin:$PATH"' &gt;&gt; $HOME/.zshrc
+echo 'eval "$(rbenv init -)"' &gt;&gt; $HOME/.zshrc
+</code></pre>
+
+<p>准备好rbenv后，则准备安装ruby版本，</p>
+
+<pre><code>rbenv install 2.0.0-p195
+rbenv global 2.0.0-p195
+</code></pre>
+
+<p>安装好ruby后，准备安装cocoapods，首先重新设置gem的源地址，因为国外的源地址速度太慢，我们使用淘宝的镜像源</p>
+
+<pre><code>gem sources -a http://ruby.taobao.org/
+gem sources -l #查看现在所有的源地址
+gem sources --remove http://rubygems.org/ #移除默认的源地址
+
+gem install cocoapods #安装cocoapods
+</code></pre>
+
+<h3>三.cocoapods使用</h3>
+
+<h5>1.创建一个项目，比如创建一个名为podtest的项目</h5>
+
+<h5>2.在项目的根目录中创建一个名为'Podfile'的文件，在此文件中加入相应的设置</h5>
+
+<pre><code>platform :ios, '5.0'
+pod 'AFNetworking'
+</code></pre>
+
+<h5>3.在项目根目录中运行<code>pod install</code>，得到如下输出</h5>
+
+<pre><code>➔ pod install
+Setting up CocoaPods master repo
+
+CocoaPods 0.21.0.rc1 is available.
+
+Setup completed (read-only access)
+Analyzing dependencies
+
+CocoaPods 0.21.0.rc1 is available.
+
+Downloading dependencies
+Installing AFNetworking (1.3.1)
+Generating Pods project
+Integrating client project
+
+[!] From now on use `podtest.xcworkspace`.
+</code></pre>
+
+<p>这个时候在你的home目录中多了一个.cocoapods的目录，且此目录下有一个master的目录，这里便是自动clone出来的官方的podspec库。</p>
+
+<h5>4.这个时候已经生成了一个XCode的workspace文件，你可以打开workspace</h5>
+
+<p>你会发现cocoapods会将所有的三方库放在一个单独的名为Pods的项目中进行维护，这个Pods的项目将所有的三方库打包成一个单独的静态库，供主项目使用，至于三方库的资源文件，则提供了一个拷贝脚本，供主项目使用<code>Pods-resources.sh</code></p>
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>Discourse的自动化部署</title>
+      <link href="http://aslinwang.github.io/2013/05/discourse-install-guide/"/>
+      <pubDate>2013-05-25T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/05/discourse-install-guide</guid>
+      <content:encoded><![CDATA[<blockquote><p>大家可以到这里来讨论 Discourse的安装  <a href="http://www.mydiscourse.org/t/discourse/27">http://www.mydiscourse.org/t/discourse/27</a></p></blockquote>
+
+<p><a href="http://discourse.org/">Discourse</a>是一个开源的论坛程序，由Stack Overflow的联合创始人之一Jeff Atwood在离开Stack Overflow后组队创建。他们的目标很宏伟，就是创建一个面向未来十年的论坛程序。具体的一些论坛的特性可以到其官网上查看，这里主要讨论一些其技术相关的东西。
+Discourse的源码托管在github上,<a href="https://github.com/discourse/discourse">https://github.com/discourse/discourse</a>，使用了以下一些相关技术：</p>
+
+<ul>
+<li>Ruby on Rails ，Discourse的后端是一个rails的app,RESTful的api，返回JSON格式的数据</li>
+<li>Ember.js ，Discourse的前端是一个Ember.js的app，和rails的api进行交互，他们使用这个Ember.js的原因可以参考这篇博文<a href="http://eviltrout.com/2013/02/10/why-discourse-uses-emberjs.html">http://eviltrout.com/2013/02/10/why-discourse-uses-emberjs.html</a>,此博主在Discourse项目中主要担任前端开发工作，他的观点就是如果一个web应用是一个强交互应用的话，那么使用Client MVC的js框架将利大于弊</li>
+<li>PostgreSQL ， 主要的数据都使用PostgreSQL进行存储，这个具有学院派风格的数据库经过多年的发展，稳定性，性能都非常不错，功能全面也是其一大特色。</li>
+<li>Redis ，使用Redis这个kv数据库用于任务队列等功能</li>
+</ul>
+
+
+<p>如果你想使用Discourse搭建一个论坛，那么一个虚拟主机（VPS）是必不可少的了。本文所使用的主机是在Digital Ocean上申请的，机房选择的是旧金山，国内的访问速度还可以，我是比较熟悉Debian系（比如Debian，Ubuntu...）的Linux发行版本，安装软件直接apt-get解决，非常的方便。所以就选了Debian 7.0 x32 Server，512MB Ram，20GB SSD Disk，不过Discourse官方建议的最低内存是1G。  <br/>
+<br>
+应用的部署使用了一个ruby写的叫做<a href="https://github.com/capistrano/capistrano">Capistrano</a>的工具，它是一个远程自动部署的工具，支持插件比如这次就使用了一个Capistrano的rbenv插件。  <br/>
+Capistrano的使用中涉及到两方：一方是客户端，也就是发起运行Capistrano的一方，Capistrano的配置文件都在客户端；另一方是服务器端，也就是最终应用部署的目标容器。我们在客户端中配置好Capistrano以及发布的脚本，然后运行之，Capistrano便会根据脚本通过ssh连接到服务器上进行部署的各项工作，这些步骤无需我们直接操作，我们只需要看着命令行中输出的log便可。</p>
+
+<h3>一.服务器端的各项准备工作</h3>
+
+<p>创建好虚拟主机后服务器端的一些工作</p>
+
+<h4>0.准备工作</h4>
+
+<p>更新系统：</p>
+
+<pre><code>apt-get update
+apt-get upgrade
+apt-get install vim #默认的vi不太好用,你也可以选择别的编辑器比如nano
+</code></pre>
+
+<p>确认下hostname</p>
+
+<pre><code>vi /etc/hosts #比如 127.0.0.1       localhost mydiscourse.org
+</code></pre>
+
+<h4>1.创建交换区</h4>
+
+<p>有些虚拟机提供商可能默认就创建好交换区了，你可以通过free命令来查看，如果free的结果中看到类似如下这一行的时候，说明已经存在swap分区了</p>
+
+<pre><code>    Swap:       524284      23968     500316
+</code></pre>
+
+<p>swap分区的作用就是当物理内存不够用的时候，系统将物理内存中长时间没有活动的部分转移到swap分区中，以腾出更多的内存供应用使用。当某个程序需要用到swap分区中的内容的时候，在从swap分区中转移出来。
+Digital Ocean默认是没有帮你创建好交换分区的，创建的方式如下：</p>
+
+<pre><code>sudo dd if=/dev/zero of=/swapfile bs=1024 count=512k
+sudo mkswap /swapfile
+sudo swapon /swapfile
+</code></pre>
+
+<p>然后使用vim编辑/etc/fstab，添加下面这行</p>
+
+<pre><code>/swapfile       none    swap    sw      0       0
+</code></pre>
+
+<p>为了安全，得修改swapfile的权限</p>
+
+<pre><code>sudo chown root:root /swapfile
+sudo chmod 0600 /swapfile
+</code></pre>
+
+<p>最后再次通过free命令确认下交换分区是否创建成功。</p>
+
+<h4>2.创建发布用户</h4>
+
+<p>在Linux中，用户管理是一个和系统安全息息相关的问题，所以控制好用户的权限非常的重要。
+首先在服务器上需要创建一个专门用于Capistrano发布的账户，我们叫他deploy user,并且将账户的登录方式限制为公私钥认证的方式，禁掉密码认证的登录方式（甚至可以附带关闭root ssh登录系统的权限），这些设置都是在sshd的配置文件中进行设置。
+一开始是root登录，这时你需要增加一个deploy user，我们就假设名字为 <code>apps</code></p>
+
+<pre><code>adduser apps #增加一个用户 apps
+adduser apps sudo #将apps用户加到sudo组，使其可以使用sudo
+</code></pre>
+
+<p>这个时候你可以在客户端通过apps用户进行登录了
+要设置ssh验证方式，首先得在客户端也就是本机（desktop）上生成密钥对（如果你之前已经有了可以跳过此步）</p>
+
+<pre><code>ssh-keygen
+</code></pre>
+
+<p>这个时候会在~/.ssh 目录下生成了两个文件 id_rsa 和 id_rsa.pub，前者为私有，后者为公钥，你需要将公钥内容加到服务器端对应用户的 <code>~/.ssh/authorized_keys</code> 文件中，如果authorized_keys不存在则你需要创建一下。
+然后为了安全性 设置下相关目录的权限</p>
+
+<pre><code>chown -R apps:apps .ssh
+chmod 700 .ssh
+chmod 600 .ssh/authorized_keys
+</code></pre>
+
+<p>这个时候你可以从客户端直接ssh连 过去而不用输入用户密码了，假设这个时候你以apps登录下，我们再把密码验证登录验证的方式关掉。</p>
+
+<pre><code>#设置成 PasswordAuthentication no    以及 PermitRootLogin no
+sudo vi /etc/ssh/sshd_config
+
+#重启 sshd服务
+sudo service ssh restart 
+</code></pre>
+
+<h4>3.安装必要的软件</h4>
+
+<pre><code>#编译ruby所需的基础库
+sudo apt-get install build-essential openssl libreadline6 libreadline6-dev \
+         curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev \
+         sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev libgdbm-dev \
+         ncurses-dev automake libtool bison subversion pkg-config libffi-dev
+#安装nginx
+sudo apt-get install nginx
+#安装PostgreSQL redis
+sudo apt-get install postgresql-9.1 postgresql-contrib-9.1 redis-server \
+                     libxml2-dev libxslt-dev libpq-dev make g++
+</code></pre>
+
+<p>创建好数据的角色和数据库</p>
+
+<pre><code>sudo -u postgres createuser apps -s -P
+createdb -U apps discourse_production
+</code></pre>
+
+<p>由于Discourse有邮件发送的需求，如果你想使用系统本身来发邮件，那么你还得安装sendmail</p>
+
+<pre><code>apt-get install sendmail    
+</code></pre>
+
+<p><br></p>
+
+<h3>二.客户端的工作</h3>
+
+<h4>1.客户端安装基础软件</h4>
+
+<p>安装git，如果你是使用Linux那么直接使用相关的包管理软件进行安装，如果你使用的是Mac那么可以使用macprot或者brew这些第三方的包管理软件进行安装。当然如果你要使用源码编译的方式安装也是可以的。
+安装ruby，你可以直接安装（包管理软件安装或者源码编译），也可以通过ruby版本管理的软件进行间接安装，比如rvm，rbenv。我这里选择了rbenv。
+如果你是Linux你得确保编译所需的软件包都安装就绪</p>
+
+<pre><code>sudo apt-get install build-essential openssl libreadline6 libreadline6-dev \
+         curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev \
+         sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev libgdbm-dev \
+         ncurses-dev automake libtool bison subversion pkg-config libffi-dev
+</code></pre>
+
+<p>如果你是Mac，那么XCode以及XCode命令行工具你得安装就位。</p>
+
+<p>安装rbenv以及通过rbenv安装ruby</p>
+
+<pre><code>#安装rbenv
+git clone git://github.com/sstephenson/rbenv.git ~/.rbenv
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' &gt;&gt; ~/.bash_profile
+echo 'eval "$(rbenv init -)"' &gt;&gt; ~/.bash_profile
+exec $SHELL -l
+
+#安装rbenv的ruby-build插件，方便ruby版本的安装
+git clone https://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+#安装rbenv的rehash插件，安装了新的gem后再也不用运行rbenv rehash了:)
+git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
+
+#安装ruby-2.0.0-p195以及bundler
+rbenv install 2.0.0-p195; 
+rbenv global 2.0.0-p195
+gem install bundler
+</code></pre>
+
+<h4>2.git库的相关操作</h4>
+
+<p>如果你想自己做一些自定义的开发工作或者想为discourse这个开源项目贡献自己的代码，那么你去注册一个github的账号是必不可少的了。
+然后从 <a href="https://github.com/discourse/discourse">https://github.com/discourse/discourse</a> fork一个git库出来，比如我fork出来的地址为 <a href="https://github.com/kejinlu/discourse">https://github.com/kejinlu/discourse</a></p>
+
+<pre><code>#克隆远程库到本地
+git clone git@github.com:kejinlu/discourse.git
+cd discourse
+#增加上游库,以便将上游的更新合并过来
+git remote add upstream git@github.com:discourse/discourse.git 
+</code></pre>
+
+<h4>3.准备Discourse生产环境所需的配置文件</h4>
+
+<h5>config/database.yml</h5>
+
+<p>数据库的配置文件，主要配置数据库的用户名密码，以及相关hostname</p>
+
+<pre><code>cp database.yml.production-sample config/database.yml 
+#然后对用户名密码以及对生产环境对应的host_names进行修改
+vi config/database.yml 
+</code></pre>
+
+<h5>config/redis.yml</h5>
+
+<p>配置文件可以直接使用样例</p>
+
+<pre><code>cp redis.yml.sample redis.yml #使用样例的配置即可，无需修改
+</code></pre>
+
+<h5>environments/production.rb</h5>
+
+<p>次配置文件主要需要修改就是邮件发送的配置，如果你不想使用操作系统中的sendmail进行发送邮件,你可以选择第三方的smtp服务，
+比如我就是使用gmail的smtp进行发送的，相关配置如下：</p>
+
+<pre><code>config.action_mailer.delivery_method = :smtp
+config.action_mailer.perform_deliveries = true
+config.action_mailer.raise_delivery_errors = true
+config.action_mailer.smtp_settings = {
+ :address              =&gt; "smtp.gmail.com",
+ :port                 =&gt; 587,
+ :domain               =&gt; 'mail.google.com',
+ :user_name            =&gt; 'info.mydiscourse@gmail.com',
+ :password             =&gt; 'xxxxxxxx',
+ :authentication       =&gt; 'plain',
+ :enable_starttls_auto =&gt; true  }
+
+ #config.action_mailer.delivery_method = :sendmail
+ #config.action_mailer.sendmail_settings = {arguments: '-i'}
+</code></pre>
+
+<h5>initializers/secret_token.rb</h5>
+
+<p>这个文件是rails要用的，默认就存在了，只不过用于开发环境的，你需要生成一个新的secret并对这个文件进行修改</p>
+
+<pre><code>bundle exec rake secret
+</code></pre>
+
+<p>将生成的字符串用到<code>initializers/secret_token.rb</code>文件中</p>
+
+<p>最后这个文件除了注释掉的只剩下一行</p>
+
+<pre><code>Discourse::Application.config.secret_token = "你生成的token贴到这里"
+</code></pre>
+
+<h5>config/thin.yml</h5>
+
+<p>是用于thin的配置文件，</p>
+
+<pre><code>cp config/thin.yml.sample config/thin.yml
+</code></pre>
+
+<p>在config/thin.yml最后加上一行</p>
+
+<pre><code>onebyone: true
+</code></pre>
+
+<p>当然你也可以自己设置server的数量，一个server在运行的时候对应一个thin的进程，如果你的内存有线可以适当的减少server的数量，比如我设置成了2</p>
+
+<pre><code>---
+chdir: /home/apps/discourse/current
+environment: production
+address: 0.0.0.0
+port: 3000
+timeout: 30
+log: /home/apps/discourse/shared/log/thin.log
+pid: /home/apps/discourse/shared/pids/thin.pid
+socket: /home/apps/discourse/shared/sockets/thin.sock
+max_conns: 1024
+max_persistent_conns: 100
+require: []
+wait: 30
+servers: 2
+daemonize: true
+onebyone: true
+</code></pre>
+
+<h5>config/nginx.conf</h5>
+
+<pre><code>cp config/nginx.conf.sample config/nginx.conf
+</code></pre>
+
+<p>这是nginx的配置文件，下面是我的配置，upstream里面内容和thin的配置对应,还要记得修改server_name以及location的root的位置</p>
+
+<pre><code>upstream discourse {
+  server unix:///home/apps/discourse/shared/sockets/thin.0.sock;
+  server unix:///home/apps/discourse/shared/sockets/thin.1.sock;
+}
+
+server {
+
+  listen 80;
+  gzip on;
+  gzip_min_length 1000;
+  gzip_types application/json text/css application/x-javascript;
+
+  server_name mydiscourse.org;
+
+  sendfile on;
+
+  keepalive_timeout 65;
+
+  location / {
+    root /home/apps/discourse/current/public;
+
+    location ~ ^/t\/[0-9]+\/[0-9]+\/avatar {
+      expires 1d;
+      add_header Cache-Control public;
+      add_header ETag "";
+    }
+
+    location ~ ^/assets/ {
+      expires 1y;
+      add_header Cache-Control public;
+      add_header ETag "";
+      break;
+    }
+
+    proxy_set_header  X-Real-IP  $remote_addr;
+    proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header  X-Forwarded-Proto $scheme;
+    proxy_set_header  Host $http_host;
+
+
+    # If the file exists as a static file serve it directly without
+    # running all the other rewite tests on it
+    if (-f $request_filename) {
+      break;
+    }
+
+    if (!-f $request_filename) {
+      proxy_pass http://discourse;
+      break;
+    }
+
+  }
+
+}
+</code></pre>
+
+<p>由于上面的一些配置中涉及到一些敏感信息，你不不能将其放到public的库中，要不放到私有库中，要么将这些敏感文件加入git的ignore。如果将上述的文件加入ignore的话，那么在下面的deploy脚本中需要将本地的配置在部署的过程中拷贝到目标服务器中，作为生产环境的配置文件，如果你把正式的配置文件都放到了私有的库中，那么这些配置文件其实就没有必要从客户端再拷贝了，下文的deploy.rb脚本中就有从本地拷贝这些配置的过程。</p>
+
+<h4>4.配置Capistrano</h4>
+
+<p>往Gemfile中加入两行</p>
+
+<pre><code>gem 'capistrano', require: nil
+gem 'capistrano-rbenv', require: nil
+</code></pre>
+
+<p>增加Capfile</p>
+
+<pre><code>cp Capfile.sample Capfile
+</code></pre>
+
+<p>创建config/deploy.rb</p>
+
+<pre><code># Require the necessary Capistrano recipes
+require 'capistrano-rbenv'
+require 'bundler/capistrano'
+require 'sidekiq/capistrano'
+
+# Repository settings, forked to an outside copy
+set :repository, 'git://github.com/kejinlu/discourse.git'
+set :deploy_via, :remote_cache
+set :branch, fetch(:branch, 'master')
+set :scm, :git
+
+ssh_options[:keys] = [File.join(ENV["HOME"], ".ssh", "id_rsa")]
+ssh_options[:forward_agent] = true
+
+# General Settings
+set :deploy_type, :deploy
+default_run_options[:pty] = true
+
+
+# Server Settings
+set :user, 'apps'
+set :use_sudo, false
+set :rails_env, :production
+set :rbenv_ruby_version, '2.0.0-p195'
+
+role :app, 'mydiscourse.org', primary: true
+role :db,  'mydiscourse.org', primary: true
+role :web, 'mydiscourse.org', primary: true
+
+# Application Settings
+set :application, 'discourse'
+set :deploy_to, "/home/#{user}/#{application}"
+
+# Keep your bundle up to date!
+#after "deploy:setup" do
+#  run "cd #{current_path} &amp;&amp; bundle install"
+#end
+
+namespace :deploy do
+  # Tasks to start, stop and restart thin. This takes Discourse's
+  # recommendation of changing the RUBY_GC_MALLOC_LIMIT.
+  desc 'Start thin servers'
+  task :start, :roles =&gt; :app, :except =&gt; { :no_release =&gt; true } do
+    run "cd #{current_path} &amp;&amp; RUBY_GC_MALLOC_LIMIT=90000000 bundle exec thin -C config/thin.yml start", :pty =&gt; false
+  end
+
+  desc 'Stop thin servers'
+  task :stop, :roles =&gt; :app, :except =&gt; { :no_release =&gt; true } do
+    run "cd #{current_path} &amp;&amp; bundle exec thin -C config/thin.yml stop"
+  end
+
+  desc 'Restart thin servers'
+  task :restart, :roles =&gt; :app, :except =&gt; { :no_release =&gt; true } do
+    run "cd #{current_path} &amp;&amp; RUBY_GC_MALLOC_LIMIT=90000000 bundle exec thin -C config/thin.yml restart"
+  end
+
+  # Sets up several shared directories for configuration and thin's sockets,
+  # as well as uploading your sensitive configuration files to the serer.
+  # The uploaded files are ones I've removed from version control since my
+  # project is public. This task also symlinks the nginx configuration so, if
+  # you change that, re-run this task.
+  task :setup_config, roles: :app do
+    run  "mkdir -p #{shared_path}/config/initializers"
+    run  "mkdir -p #{shared_path}/config/environments"
+    run  "mkdir -p #{shared_path}/sockets"
+    put  File.read("config/database.yml"), "#{shared_path}/config/database.yml"
+    put  File.read("config/redis.yml"), "#{shared_path}/config/redis.yml"
+    put  File.read("config/environments/production.rb"), "#{shared_path}/config/environments/production.rb"
+    put  File.read("config/initializers/secret_token.rb"), "#{shared_path}/config/initializers/secret_token.rb"
+    put  File.read("config/thin.yml"), "#{shared_path}/config/thin.yml"
+    put  File.read("config/nginx.conf"), "#{shared_path}/config/nginx.conf"
+    sudo "ln -nfs #{shared_path}/config/nginx.conf /etc/nginx/sites-enabled/#{application}"
+    puts "Now edit the config files in #{shared_path}."
+  end
+
+  # Symlinks all of your uploaded configuration files to where they should be.
+  task :symlink_config, roles: :app do
+    run  "ln -nfs #{shared_path}/config/database.yml #{release_path}/config/database.yml"
+    run  "ln -nfs #{shared_path}/config/newrelic.yml #{release_path}/config/newrelic.yml"
+    run  "ln -nfs #{shared_path}/config/redis.yml #{release_path}/config/redis.yml"
+    run  "ln -nfs #{shared_path}/config/environments/production.rb #{release_path}/config/environments/production.rb"
+    run  "ln -nfs #{shared_path}/config/initializers/secret_token.rb #{release_path}/config/initializers/secret_token.rb"
+    run  "ln -nfs #{shared_path}/config/thin.yml #{release_path}/config/thin.yml"
+  end
+end
+
+after "deploy:setup", "deploy:setup_config"
+after "deploy:finalize_update", "deploy:symlink_config"
+
+# Tasks to start/stop/restart the clockwork process.
+namespace :clockwork do
+  desc "Start clockwork"
+  task :start, :roles =&gt; [:app] do
+    run "cd #{current_path} &amp;&amp; RAILS_ENV=#{rails_env} bundle exec clockworkd -c #{current_path}/config/clock.rb --pid-dir #{shared_path}/pids --log --log-dir #{shared_path}/log start"
+  end
+
+  task :stop, :roles =&gt; [:app] do
+    run "cd #{current_path} &amp;&amp; RAILS_ENV=#{rails_env} bundle exec clockworkd -c #{current_path}/config/clock.rb --pid-dir #{shared_path}/pids --log --log-dir #{shared_path}/log stop"
+  end
+
+  task :restart, :roles =&gt; [:app] do
+    run "cd #{current_path} &amp;&amp; RAILS_ENV=#{rails_env} bundle exec clockworkd -c #{current_path}/config/clock.rb --pid-dir #{shared_path}/pids --log --log-dir #{shared_path}/log restart"
+  end
+end
+
+after  "deploy:stop",    "clockwork:stop"
+after  "deploy:start",   "clockwork:start"
+before "deploy:restart", "clockwork:restart"
+
+namespace :db do
+  desc 'Seed your database for the first time'
+  task :seed do
+    run "cd #{current_path} &amp;&amp; psql -d discourse_production &lt; pg_dumps/production-image.sql"
+  end
+end
+
+after  'deploy:update_code', 'deploy:migrate'
+</code></pre>
+
+<h4>5.运行Capistrano</h4>
+
+<p>初次安装部署</p>
+
+<pre><code>bundle install
+cap deploy:setup
+cap deploy:cold #第一次运行之后更新重启的时候只需要 cap deploy 便可
+</code></pre>
+
+<p>升级部署</p>
+
+<pre><code>git fetch upstream
+git merge upstream/master
+git push origin master
+cap deploy
+</code></pre>
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>Git修订版本</title>
+      <link href="http://aslinwang.github.io/2013/05/git-revisions/"/>
+      <pubDate>2013-05-09T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/05/git-revisions</guid>
+      <content:encoded><![CDATA[<p>在git中修订版本其实就是commit对象的名字，这个名字可以直接是sha1的哈希或者指向这个哈希的引用（比如分支或者tag）。git使用中，修订版本或者修订版本范围的指定是一个非常重要的知识点，因为很多git命令都需要接收这样的参数，即修订版本或者修订版本的范围。
+指定修订版本往往是为了从这个指定的修订版本开始向回遍历所有的修订版本进行相关操作，而指定修订版本范围则是为了只对范围中的修订版本进行单独操作。
+关于修订版本及其范围的指定方式可以在这里找到：<a href="https://www.kernel.org/pub/software/scm/git/docs/gitrevisions.html">https://www.kernel.org/pub/software/scm/git/docs/gitrevisions.html</a>。</p>
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>Git reflog 机制</title>
+      <link href="http://aslinwang.github.io/2013/04/git-reflog/"/>
+      <pubDate>2013-04-26T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/04/git-reflog</guid>
+      <content:encoded><![CDATA[<h3>使用git reflog查看引用变化</h3>
+
+<p><a href="https://www.kernel.org/pub/software/scm/git/docs/git-reflog.html">git reflog</a>是对reflog进行管理的命令，那么什么是reflog呢？ <br/>
+reflog是git用来记录引用变化的一种机制，比如记录分支的变化或者是HEAD引用的变化。
+比如在某git库中运行git reflog,当git reflog命令不指定引用的时候默认列出HEAD的reflog。</p>
+
+<pre><code>2ab4043 (HEAD, refs/heads/master, refs/heads/a) HEAD@{0}: checkout: moving from master to a
+2ab4043 (HEAD, refs/heads/master, refs/heads/a) HEAD@{1}: commit (merge): Merge branch 'mybranch'
+bf98582 HEAD@{2}: rebase: aborting
+bf98582 HEAD@{3}: checkout: moving from 7e9938d9f5b9f7835359ca87da8a329781ed74b6 to master
+7e9938d (refs/remotes/origin/mybranch, refs/heads/mybranch) HEAD@{4}: checkout: moving from master to 7e9938d9f5b9f7835359ca87da8a329781ed74b6^0
+bf98582 HEAD@{5}: reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+be93372 (refs/remotes/origin/master) HEAD@{6}: commit: add merge detail to read me
+3eeedca HEAD@{7}: commit (merge): Merge branch 'mybranch'
+bf98582 HEAD@{8}: reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+00fa1f0 HEAD@{9}: commit (merge): Merge branch 'mybranch'
+bf98582 HEAD@{10}: reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+663feb9 HEAD@{11}: commit: merge mybranch
+bf98582 HEAD@{12}: reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+aa73004 HEAD@{13}: commit: merge issue
+bf98582 HEAD@{14}: commit: modify readme file
+cd2eddb HEAD@{15}: checkout: moving from mybranch to master
+7e9938d (refs/remotes/origin/mybranch, refs/heads/mybranch) HEAD@{16}: commit: modiy readme add issueFile
+cd2eddb HEAD@{17}: checkout: moving from master to mybranch
+cd2eddb HEAD@{18}: commit: prepare files
+b39fed8 HEAD@{19}: commit (initial): first commit
+</code></pre>
+
+<p>这里涉及到一个修订版本引用的语法,比如 HEAD@{0}代表HEAD当前的值，HEAD@{2}代表HEAD两次变化之前的值。详情的语法可以参看这里 <a href="https://www.kernel.org/pub/software/scm/git/docs/gitrevisions.html">https://www.kernel.org/pub/software/scm/git/docs/gitrevisions.html</a>。 <br/>
+上面的输出结果为HEAD所有的变化历史，每一条记录包含了变化所对应的git操作，比如commit，checkout，rebase，merge等，以及变化的详情内容。    <br/>
+git reflog有时候可以帮助你找到丢失掉的commit，比如你在某个detached HEAD（即不在任何分支只是在某个历史的commit的节点上）的时候进行了一次commit，然后你切换到另一个分支想把刚才的东西合并进来，这个时候突然意识到刚才的那次提交找不到了，这时你就可以通过HEAD@{1}引用到刚才的提交了，或者通过git reflog找到对应commit的sha1值，然后进行merge。
+<br></p>
+
+<h3>reflog文件格式</h3>
+
+<p>那么git系统是如何存储reflog的呢？这里继续拿HEAD来举例，git会将变化记录到HEAD对应的reflog文件中，其路径为.git/logs/HEAD，文件是一个纯文本文件。分支的reflog文件都放在.git/logs/refs目录下的子目录中。
+下面是HEAD的reflog文件的内容：</p>
+
+<pre><code>0000000000000000000000000000000000000000 b39fed82cd3225eb524f6f0184c0ba49a4f6952c 卢克 &lt;kejinlu@gmail.com&gt; 1366871718 +0800   commit (initial): first commit
+b39fed82cd3225eb524f6f0184c0ba49a4f6952c cd2eddb41a632f68b0655366d5ca99f4701bb9b4 卢克 &lt;kejinlu@gmail.com&gt; 1366871885 +0800   commit: prepare files
+cd2eddb41a632f68b0655366d5ca99f4701bb9b4 cd2eddb41a632f68b0655366d5ca99f4701bb9b4 卢克 &lt;kejinlu@gmail.com&gt; 1366871950 +0800   checkout: moving from master to mybranch
+cd2eddb41a632f68b0655366d5ca99f4701bb9b4 7e9938d9f5b9f7835359ca87da8a329781ed74b6 卢克 &lt;kejinlu@gmail.com&gt; 1366872039 +0800   commit: modiy readme add issueFile
+7e9938d9f5b9f7835359ca87da8a329781ed74b6 cd2eddb41a632f68b0655366d5ca99f4701bb9b4 卢克 &lt;kejinlu@gmail.com&gt; 1366872046 +0800   checkout: moving from mybranch to master
+cd2eddb41a632f68b0655366d5ca99f4701bb9b4 bf985821e12129ea3dc9d4150792b8dae798773c 卢克 &lt;kejinlu@gmail.com&gt; 1366872107 +0800   commit: modify readme file
+bf985821e12129ea3dc9d4150792b8dae798773c aa7300408b6865b105d196c1acf60dc83ffccef1 卢克 &lt;kejinlu@gmail.com&gt; 1366872272 +0800   commit: merge issue
+aa7300408b6865b105d196c1acf60dc83ffccef1 bf985821e12129ea3dc9d4150792b8dae798773c 卢克 &lt;kejinlu@gmail.com&gt; 1366872623 +0800   reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+bf985821e12129ea3dc9d4150792b8dae798773c 663feb94a406a8d3600f2d24bf4dafc565a5f9da 卢克 &lt;kejinlu@gmail.com&gt; 1366872760 +0800   commit: merge mybranch
+663feb94a406a8d3600f2d24bf4dafc565a5f9da bf985821e12129ea3dc9d4150792b8dae798773c 卢克 &lt;kejinlu@gmail.com&gt; 1366872810 +0800   reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+bf985821e12129ea3dc9d4150792b8dae798773c 00fa1f0727bca42305b2a7c5dc53f44c33a17a96 卢克 &lt;kejinlu@gmail.com&gt; 1366872883 +0800   commit (merge): Merge branch 'mybranch'
+00fa1f0727bca42305b2a7c5dc53f44c33a17a96 bf985821e12129ea3dc9d4150792b8dae798773c 卢克 &lt;kejinlu@gmail.com&gt; 1366873467 +0800   reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+bf985821e12129ea3dc9d4150792b8dae798773c 3eeedca7ea0b821088faba84b3157493eae4e13d 卢克 &lt;kejinlu@gmail.com&gt; 1366873579 +0800   commit (merge): Merge branch 'mybranch'
+3eeedca7ea0b821088faba84b3157493eae4e13d be933721a15b18605aaf9d4d9f5c5eff3281b9b4 卢克 &lt;kejinlu@gmail.com&gt; 1366874038 +0800   commit: add merge detail to read me
+be933721a15b18605aaf9d4d9f5c5eff3281b9b4 bf985821e12129ea3dc9d4150792b8dae798773c 卢克 &lt;kejinlu@gmail.com&gt; 1366882601 +0800   reset: moving to bf985821e12129ea3dc9d4150792b8dae798773c
+bf985821e12129ea3dc9d4150792b8dae798773c 7e9938d9f5b9f7835359ca87da8a329781ed74b6 卢克 &lt;kejinlu@gmail.com&gt; 1366882618 +0800   checkout: moving from master to 7e9938d9f5b9f7835359ca87da8a329781ed74b6^0
+7e9938d9f5b9f7835359ca87da8a329781ed74b6 bf985821e12129ea3dc9d4150792b8dae798773c 卢克 &lt;kejinlu@gmail.com&gt; 1366882688 +0800   checkout: moving from 7e9938d9f5b9f7835359ca87da8a329781ed74b6 to master
+bf985821e12129ea3dc9d4150792b8dae798773c bf985821e12129ea3dc9d4150792b8dae798773c 卢克 &lt;kejinlu@gmail.com&gt; 1366882792 +0800   rebase: aborting
+bf985821e12129ea3dc9d4150792b8dae798773c 2ab4043c6c4c9f59e7756cb7fb5df4fdf467fe4b 卢克 &lt;kejinlu@gmail.com&gt; 1366882860 +0800   commit (merge): Merge branch 'mybranch'
+2ab4043c6c4c9f59e7756cb7fb5df4fdf467fe4b 2ab4043c6c4c9f59e7756cb7fb5df4fdf467fe4b 卢克 &lt;kejinlu@gmail.com&gt; 1366958770 +0800   checkout: moving from master to a
+</code></pre>
+
+<p>从上面HEAD的reflog的log文件的内容可以看到，每一个reflog的entry都包含了变化前commit节点的sha1值以及变化后的commit节点的sha1值，如果你阅读了git的源码你会看到这两个值对应的变量名为osha1（old sha1）和nsha1（new sha1），第一次commit对应变化的old sha1值为全0的特殊值；每一个entry还包含了用户名，email ，变化的时间戳以及变化的具体内容。</p>
+
+<p><br></p>
+
+<h3>reflog高级操作</h3>
+
+<p>在git中一个对象一般都会被别的对象或者引用引用到。如果一个对象不再被任何对象或者引用直接引用到，那么这个对象就成了一个悬空对象dangling object。Dangling object在git库中基本没有大的作用了，如果你不去管它，会根据过期失效的策略最终被垃圾回收机制清理掉。 <br/>
+如果从某个引用或者对象开始去遍历对象的有向图，无法达到某个指定对象，那么可以说这个指定对象unreachable from this reference or object。 <br/>
+如果一个对象unreachable from任何其他对象和引用，那么它便是悬空对象了。</p>
+
+<p>之前我们提到，reflog entry会记录old sha1，new sha1的值，所以reflog 也算作对这两个sha1对应的对象的引用者。所以有时候虽然某个commit对象无法从任何一个引用引用到，但是它却不是真正的悬空对象，原因就是还有reflog对它的引用。所以有时候为了清理无用的对象，需要删除一些reflog entry。</p>
+
+<p><code>git reflog delete ref@{specifier}</code> 可以用来删除指定的reflog entry，使得它从历史中消失，这个时候reflog并不是引用变化的真实历史了。前面讲了，每一个reflog entry都包含两个sha1，老sha1和新sha1，如果删除中间的某条entry的时候，就相当于断开了这种新老的关联，产生了gap，如何解决这个问题呢？可以在delete的时候加上<code>--rewrite选项</code>，它的作用就是使得删除掉的记录后面的entry的old sha1为现在前一条entry的new sha1值。</p>
+
+<p>还有一种删除reflog entry的方式是使用其过期机制，<code>git reflog expire [--expire=&lt;time&gt;] [--expire-unreachable=&lt;time&gt;] &lt;refs&gt;</code>，如果不指定其中的相关时间的话，则使用git配置的 <code>gc.reflogExpire</code> 和 <code>gc.reflogExpireUnreachable</code>如果配置没有显式的配置则使用默认值，分别为90天和两周。</p>
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>Git命令介绍及内部机制</title>
+      <link href="http://aslinwang.github.io/2013/04/git-keynote/"/>
+      <pubDate>2013-04-19T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/04/git-keynote</guid>
+      <content:encoded><![CDATA[<p>keynote放在<a href="https://speakerdeck.com/kejinlu/gitban-ben-kong-zhi">Speaker Deck</a> (github公司创建的一个演示文稿托管服务)，加载有点慢，耐心等待!</p>
+
+<script async class="speakerdeck-embed" data-id="9c7ac750ac940130d6a626f5cde8fd08" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+
+
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>iOS Cookie使用</title>
+      <link href="http://aslinwang.github.io/2013/04/ios-cookie/"/>
+      <pubDate>2013-04-02T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/04/ios-cookie</guid>
+      <content:encoded><![CDATA[<p>关于Cookie的标准和原理这里就不细说了，这里只说说在iOS平台下如何进行Cookie相关的编程。  <br/>
+和Mac上不同，在iOS平台上各个App都有自己的Cookie，App之间不共享Cookie。  <br/>
+一个Cookie对应一个NSHTTPCookie实体，并通过NSHTTPCookieStorage进行管理。  <br/>
+那些需要持久化的Cookie是存放在 <code>~/Library/Cookies/Cookies.binarycookies</code> 文件中的，二进制格式。</p>
+
+<p>Cookie生成的有两个途径，一个是访问一个网页，这个网页返回的HTTP Header中有Set-Cookie指令进行Cookie的设置，这里Cookie的本地处理其实是由WebKit进行的；还有一种途径就是客户端通过代码手动设置Cookie。</p>
+
+<pre><code>NSMutableDictionary *cookieProperties = [NSMutableDictionary dictionary];
+[cookieProperties setObject:@"name" forKey:NSHTTPCookieName];
+[cookieProperties setObject:@"value" forKey:NSHTTPCookieValue];
+[cookieProperties setObject:@"www.taobao.com" forKey:NSHTTPCookieDomain];
+[cookieProperties setObject:@"/" forKey:NSHTTPCookiePath];
+[cookieProperties setObject:@"0" forKey:NSHTTPCookieVersion];
+[cookieProperties setObject:@"30000" forKey:NSHTTPCookieMaximumAge];
+NSHTTPCookie *cookie = [NSHTTPCookie cookieWithProperties:cookieProperties];
+[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookie:cookie];
+//删除cookie的方法为deleteCookie:
+</code></pre>
+
+<p>在通过<code>setCookie:</code>进行设置cookie的时候，会覆盖name,domain,path都相同的cookie的。  <br/>
+至于cookie会不会持久化到cookie文件中主要看这个cookie的生命周期，和Max-Age或者Expires有关。</p>
+
+<p><br>
+不过NSHTTPCookieStorage存在一个问题，setCookie或者deleteCookie后并不会立即进行持久化，而是有几秒的延迟。如果在持久化之前App接收到SIGKILL信号，App退出，那么会导致cookie相关操作的丢失。在模拟器调试的过程中，XCode重启App的时发给App的就是SIGKILL，不过真正的生产环境中很少有这种情况。 <br/>
+但是有时候为了可靠性，我们还是会将cookie信息保存一份到User Defaults，需要用的时候load进来。关于cookie操作丢失的详情可以查看这里<a href="http://openradar.appspot.com/radar?id=2776403">NSHTTPCookieStorage looses cookies on SIGKILL</a></p>
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>Web常识</title>
+      <link href="http://aslinwang.github.io/2013/03/web/"/>
+      <pubDate>2013-03-25T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/03/web</guid>
+      <content:encoded><![CDATA[<h3>一.Web起源</h3>
+
+<p>1969年，美国国防高等研究计划署（ ARPA ，Advanced Research Projects Agency ）开始建立一个命名为ARPANET的网络。当初，ARPANET只联结4台主机，从军事要求上是置于美国国防部高级机密的保护之下，从技术上它还不具备向外推广的条件。 <br/>
+1983年1月1日，原先ARPANET使用的交流协议NCP（Network Control Protocol）成为历史，TCP/IP开始成为通用协议。 <br/>
+1986年，美国国家科学基金会（National Science Foundation）建立了大学之间互联的骨干网络NSFNET，这是互联网历史上重要的一步。  <br/>
+<br>
+互联网的发展当然也离不开操作系统的发展，起初贝尔实验室给大学研究室提供的UNIX，是附带源码的，各个研究室可以自行修改。1977，Bill Joy（比尔·乔伊，Sun Microsystems联合创始人，03年离开SUN） 伯克利大学的学生，编译发行了 BSD（Berkeley Software Distribution）。BSD UNIX 是第一个包含了网络协议栈库的UNIX（一开始支持的还是NCP协议），这个库也就是熟知的BSD Sockets。通过将套接字与Unix操作系统的文件描述符相整合，使得网络读写数据和读写本地文件一样容易。BSD Sockets几乎成了网络访问的标准，其他系统的Sockets多多少少是基于BSD Sockets修改而来的，即便是Windows中的Winsock也借鉴了BSD Sockets。 <br/>
+乔布斯1985年被赶出苹果，后来他创建了NeXT.Inc，并开发出NEXTSTEP操作系统。这个操作系统是基于Mach和BSD（混合内核 Hybrid kernel）的。1988年NeXTSTEP第一个正式发布版本问世了。   <br/>
+<br>
+至于超文本的概念其实在HTTP之前就已经被提出来了，预言了一种非线性结构的文本，只是一直没有应用到计算机中。  <br/>
+1980年中Tim Berners-Lee到CERN工作，几个月间创建一个以超文本系统为基础的项目，方便研究人员分享及更新讯息。同时，他创建了一个原型系统，叫ENQUIRE。
+但工作了几个月就离开了CERN，转到一个图形计算相关的公司工作，并在工作中积累了网络编程的经验。  <br/>
+1984年，伯纳斯-李以正式员工的身份重返CERN，并于1990年开始着手他构想了多年的万维网以及超文本协议，WorldWideWeb项目，只花了两个月开发在年底开发出来。于是世界上第一个Web出现了,而第一个Web正是构建在NeXTcube工作站上的，运行着NeXTSTEP系统。  <br/>
+后来伯纳斯-李创建了非赢利性的万维网联盟W3C。为Web的良性和谐发展做出了巨大的贡献。
+<br></p>
+
+<h3>二.浅谈HTTP</h3>
+
+<p>HTTP的全称为Hypertext Transfer Protocol，也就是所谓的超文本传输协议。是一个C/S（客户端/服务器端）结构下的请求响应协议。   <br/>
+在HTTP之初，只是用来传输静态内容，一个URL对应网络中的一个文件，不管你是谁，什么时候，用什么浏览器访问，返回的内容都是一样的，所以这是一种没有状态（stateless ）的访问。所以HTTP一开始设计成无状态的也是可以理解的。   <br/>
+但是随着Web的不断发展，动态内容的需求出现了，所以状态的必要性显现出来了。现在一般都有Session的概念 ，服务器端一般可以通过以下方式来实现Session:</p>
+
+<ul>
+<li>HTTP Cookies</li>
+<li>Query string parameters</li>
+<li>表单隐藏字段</li>
+</ul>
+
+
+<p><br>
+下面我们再来看看HTTP请求响应的过程
+当TCP连接成功后，HTTP的请求响应总的来说就分两步:</p>
+
+<blockquote><p>以下数据来自 WireShark抓包的数据</p></blockquote>
+
+<ul>
+<li><p>1.发送GET请求</p>
+
+<pre><code>  GET / HTTP/1.1
+  Host: www.baidu.com
+  Connection: keep-alive
+  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+  User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22
+  Accept-Encoding: gzip,deflate,sdch
+  Accept-Language: zh-CN,zh;q=0.8
+  Accept-Charset: UTF-8,*;q=0.5
+  Cookie: BAIDUID=3D028EC08E879EE43F74D73F5C5A3E6D:FG=1; BDUT=btisCE4CE66A884493DB42E76032CA2D85AB13d15f1600c2
+</code></pre></li>
+<li><p>2.服务器端发送响应</p>
+
+<pre><code>  HTTP/1.1 200 OK
+  Date: Fri, 22 Mar 2013 06:54:22 GMT
+  Server: BWS/1.0
+  Content-Length: 4278
+  Content-Type: text/html;charset=utf-8
+  Cache-Control: private
+  Expires: Fri, 22 Mar 2013 06:54:22 GMT
+  Content-Encoding: gzip
+  Set-Cookie: H_PS_PSSID=2071_1435_1944_2068_1788; path=/; domain=.baidu.com
+  Connection: Keep-Alive
+  Content-encoded entity body (gzip): 4278 bytes -&gt; 10329 bytes
+</code></pre></li>
+</ul>
+
+
+<p>如果Connection是keep-alive的话，tcp连接不会立即关闭。从HTTP/1.1起，默认都开启了Keep-Alive。Keep-Alive不会永久保持连接，它有一个保持时间，可以在不同的服务器软件（如Apache,Nginx）中设定这个timeout时间。
+<br></p>
+
+<h3>三.Web Server</h3>
+
+<p>Web Server 的功能其实很简单，就是接收HTTP请求，并对请求进行响应。  <br/>
+Web起初只支持静态的文件，后来为了支持动态的内容，就制定了一套web服务器执行脚本并返回结果的标准， 后来这套标准发展出了<a href="http://tools.ietf.org/html/rfc3875">CGI标准</a>。  <br/>
+每次执行CGI脚本都需要新建一个进程（fork-and-execute），在这个进程还可能需要加载解释器之类的动作，所以代价比较高，如果短时间cgi访问较多的话，会很容器使得系统资源耗尽。</p>
+
+<p><a href="http://www.fastcgi.com/drupal/node/6?q=node/15">FastCGI</a>，是对CGI的一个优化(或者说是对CGI的一个扩展)，提出了FastCGI Server的概念，FastCGI Server在启动后会预先加载多个CGI解释器进程，用于等待请求，其实也就是多了一个进程池的概念。减少不必要的创建销毁CGI进程的代价。Web Server将环境信息以及请求的信息通过UNIX Domain Socket的方式（比如Web Server和FastCGI在同一个机器上） 或者tcp连接（FastCGI Server分布在不同的机器上），然后FastCGI处理好了以同样的方式的连接将内容返回给web server。
+对于不同的语言，FastCGI Server 可能会有不同的语言的实现，这些FastCGI Server并提供相关的API接口供你的web app使用。   <br/>
+<a href="http://www.python.ca/scgi/protocol.txt">SCGI</a>（Simple Common Gateway Interface），和FastCGI类似，不过简单的多，没有FastCGI用得多。     <br/>
+<a href="http://tomcat.apache.org/connectors-doc/ajp/ajpv13a.html">AJP</a>（Apache JServ Protocol，Apache 1.x通过mod_jk模块实现,2.0中直接集成了AJP Connector）它是一种二进制格式的传输协议，所以性能比较可观，一般后端为Java Servlet 容器，Apache Tomcat和Jetty这两个Servlet容器都支持AJP协议。    <br/>
+以上的CGI，FastCGI，SCGI以及AJP这些都可以看做数据交换的协议，和语言无关的。   <br/>
+<br>
+现在再将视线往Web Application这边移一步，这里说说Python的情况，在2003 出现WSGI之前，你若要使用Python写一个Web程序，可以专门针对CGI或者FastCGI写，也可以针对mod_python（集成了python解释器）写，为了解决这种Python Web应用编写时API不一致的情况，提出了WSGI（Web Server Gateway Interface），在Web Server 和 Web App之间增加一个抽象层，使得Web App这边的接口得到统一。一般所谓的协议或者接口其实都需要两方，WSGI也不例外，分为WSGI Server端和WSGI App端，WSGI Server端也就是所谓的那个抽象层。
+有了WSGI，我们写的Python Web App可以在所有的兼容WSGI的Server上跑起来了。在WSGI App这一层接口统一的另一个好处就使得是通用的Web组件成为可能，也就出现了所谓的Middleware中间件。</p>
+
+<p><img width="300" height="170" src="http://ww4.sinaimg.cn/large/65cc0af7jw1e2zvhnjronj.jpg"/></p>
+
+<p>WSGI Family</p>
+
+<ul>
+<li>2007 Rack,Ruby version</li>
+<li>2008 Lua WSAPI,Lua version</li>
+<li>2009 JSGI ,Javascript version</li>
+<li>2009 PSGI,Perl version</li>
+<li>2010 Hack,Haskell version</li>
+</ul>
+
+
+<blockquote><p><a href="http://en.wikipedia.org/wiki/Template:Web_server_interfaces">Web Server Interfaces</a></p></blockquote>
+
+<p>而至于Java语言，其用于Web开发的标准为Servlet。目前Servelet已经发展到3.0版。
+<br>
+常用的网站部署方式
+前端web server 比如Apache，nginx，lighttpd，HAproxy用来直接处理用户的请求以及给用户响应，如果是静态文件的请求，那么web server直接给用户静态文件，毕竟前端的web server一般都是c语言写的，效率较好。
+而动态的部分，则由 web server转至后端的 app server进行处理，传送的方式可以是cgi，fastcgi，ajp，或者直接反向代理。
+像Apache或者Nginx都可以通过一定的方式支持FastCGI。
+比如一下方式可以作为某个Python Web App的部署方式：</p>
+
+<pre><code>    Nginx/FastCGI &lt;----FastCGI----&gt; FastCGI/WSGI Server    
+</code></pre>
+
+<p>还有一种方式就是前端的Web Server只负责请求的转发，也就是反向代理的方式，后端的Web App Server本身就集成了Web Server的功能：</p>
+
+<pre><code>    Nginx&lt;----反向代理----&gt;Web App Server Instance1
+    ^
+    |----反向代理----&gt;Web App Server Instance2
+</code></pre>
+
+<p><br></p>
+
+<h4>四.Web Application</h4>
+
+<p>Web Application的开发依赖于 web app server/framework，需要遵循相应的API。
+一般Web App都分好几个层，表现层，业务逻辑层，持久层。</p>
+
+<ul>
+<li>表现层：用的比较多的就是模板引擎技术了，比如Java的Velocity，Python的Jinja，Node.js的Jade。模板引擎的模板一般都是使用相应的自定义的脚本语言写成，语法都还算简单，模板都有变量，支持循环，条件判断之类的。Render的过程就是将模板文件和变量集合进行合并渲染得到最终的页面内容。</li>
+<li>业务逻辑层：这层其实就是根据具体的业务需求，调用持久层，得到数据并进行处理，为表现层准备好数据。</li>
+<li>持久层：这层主要做的就是数据库访问。很多时候为了性能，都有数据库连接池的概念。</li>
+</ul>
+
+]]></content:encoded>
+    </item>
+    
+    <item>
+      <title>存同求异</title>
+      <link href="http://aslinwang.github.io/2013/03/seek-differences/"/>
+      <pubDate>2013-03-20T00:00:00+08:00</pubDate>
+      <author>aslinwang</author>
+      <guid>http://aslinwang.github.io/2013/03/seek-differences</guid>
+      <content:encoded><![CDATA[<p>有时候，我们在定位一个问题的时候，容易陷入问题本身，最后问题的定位往往无疾而终。这个时候我们需要跳出问题，换个角度来定位问题。“存同求异”不失为一个好的笨方法。</p>
+
+<blockquote><p>  问题:一个很大的项目，复杂的项目结构，庞大的代码体系，这个时候出现一个诡异的bug，断点调试加代码检查各种无果。这个时候不妨休息一下，换个角度定位问题</p></blockquote>
+
+<p>问题定位:</p>
+
+<ul>
+<li>1.新建一个新的空白项目，使用一个简单的界面重现问题场景。如果一样存在问题，则很有可能是框架使用方式不对或者框架本身的bug被触发了；如果一样的操作场景在这个新的项目中没有问题，那说明原来项目中的一些代码或者配置产生了这样的问题。</li>
+<li>2.将原来存在问题的项目拷贝一份出来，在这个项目中新建一个界面，同样通过简单的代码在这个新的界面中重现问题场景。如果不存在问题，和存在问题的地方代码进行对比，找出不同点；如果仍然存在问题，则将项目中的其他代码都删除，最终只留这个新建的界面，如果删除后运行没有问题，那么说明问题就是由这些删掉的文件中的某个引起的（比如Objc中的Category如果写的有问题就可能产生你意向不到的问题，因为Category会覆盖框架原先的行为），如果删除了问题还在，说明问题可能出现在项目的相关设置或者配置中。</li>
+<li>3.逐渐缩小对比区域，找出问题所在</li>
+</ul>
+
+]]></content:encoded>
+    </item>
+    
+  </channel>
+</rss>

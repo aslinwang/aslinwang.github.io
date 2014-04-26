@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="aslinwang" />
+    <title>Derby Database | aslinwang</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAD/APr59wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiIiIiIiAAAiIiIiIiIAACIiIiIiIgERERERERIiAREREREREiIBERERERESIgERIiIiERIiAREiIiIREiIBESIhERESIgERIiERERIiAREiIiIiIiIBESIiIiIiIgERIiIiIiIiAREREREREAABEREREREQAAERERERERAADgAQAA4AEAAOABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA8AAAAPAAAADwAA" rel="icon" type="image/x-icon" />
+    <link href="/feed/" rel="alternate" title="aslinwang" type="application/atom+xml" />
+    
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <link href='/media/webfonts/ss-social.css' rel='stylesheet'>
+    <link href='/media/webfonts/ss-standard.css' rel='stylesheet'>
+    <link href="/media/css/screen.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <div class="buttons">
+          <a href="/" class="ss-icon" title="Go to homepage">home</a>
+          <a href="/categories" class="ss-icon" title="Category" >list</a>
+          <a href="/tags" class="ss-icon" title="Tag Cloud" >tags</a>
+          <a href="/guestbook" class="ss-icon" title="Guest Book" >talk</a>
+          <a href="/about" class="ss-icon" title="About" >user</a>
+          <a href="/feed" class="ss-icon" title="Subscribe by RSS" >rss</a>
+        </div>
+        <h1>Derby Database</h1>
+        </header>
+        <hr>
+        <article class="content">
+        <section class="post">
+<p>最近由于要给一个历史系统迁移环境，基本上属于黑盒操作，没有文档，源码倒是有。<br/>
+这个系统的有一个部分使用了derby数据库，嗯，之前听说过derby数据库是一个纯java实现的比较轻量级的数据库，只需要几个jar包就ok了，且属于apache的开源项目了。<br/>
+我遇到的第一事情是数据库文件在那里了，我得连进去看看表啊，表的数据什么的吧。于是需要一个数据库连接工具。<br/>
+搜了下发现jdk自带了一个derby连接工具叫做ij，至于为何叫ij不得而已，猜测i的意思是交互interactive的意思吧。<br/>
+ij工具的位置在$JAVA_HOME/db/bin下，使用起来也很简单。<br/>
+derby有两重运行的方式，一种是单独运行，一种是随程序一起运行和程序一起共享一个jvm。<br/>
+ij的使用非常简单。</p>
+
+<div class="highlight"><pre><code class="bash">connect <span class="s2">&quot;jdbc:derby:/path/to/your/db;create=true;user=xxxx;password=xxx&quot;</span>
+</code></pre></div>
+
+
+<p>运行了之后你可以通过help;查看能够使用的命令。</p>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://geeklu.com">aslinwang</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2010-12-05">2010-12-05</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#programming" title="programming">programming</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#Java" title="Java">Java</a>&nbsp;
+  
+  <a href="/tags/#Database" title="Database">Database</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
+    var disqus_url = 'http://aslinwang.github.io/2010/12/derby-database/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        url = 'http://aslinwang.github.io/2010/11/the-essence-of-science/';
+        
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://aslinwang.github.io/2011/01/start-application-from-url-talk-about-wangwang/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> | Copyright 2008 - 2014 by <a href="http://aslinwang.github.io/">aslinwang</a> | Template by <a href="http://geeklu.com/about/">Luke</a> | <span class="label label-info">2014-04-26 20:07:36</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

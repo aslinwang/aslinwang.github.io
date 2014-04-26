@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="aslinwang" />
+    <title>Javascript中的数值类型 | aslinwang</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAD/APr59wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiIiIiIiAAAiIiIiIiIAACIiIiIiIgERERERERIiAREREREREiIBERERERESIgERIiIiERIiAREiIiIREiIBESIhERESIgERIiERERIiAREiIiIiIiIBESIiIiIiIgERIiIiIiIiAREREREREAABEREREREQAAERERERERAADgAQAA4AEAAOABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA8AAAAPAAAADwAA" rel="icon" type="image/x-icon" />
+    <link href="/feed/" rel="alternate" title="aslinwang" type="application/atom+xml" />
+    
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <link href='/media/webfonts/ss-social.css' rel='stylesheet'>
+    <link href='/media/webfonts/ss-standard.css' rel='stylesheet'>
+    <link href="/media/css/screen.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <div class="buttons">
+          <a href="/" class="ss-icon" title="Go to homepage">home</a>
+          <a href="/categories" class="ss-icon" title="Category" >list</a>
+          <a href="/tags" class="ss-icon" title="Tag Cloud" >tags</a>
+          <a href="/guestbook" class="ss-icon" title="Guest Book" >talk</a>
+          <a href="/about" class="ss-icon" title="About" >user</a>
+          <a href="/feed" class="ss-icon" title="Subscribe by RSS" >rss</a>
+        </div>
+        <h1>Javascript中的数值类型</h1>
+        </header>
+        <hr>
+        <article class="content">
+        <section class="post">
+<p>Javascript作为一种弱类型语言,所以数字在JS里没有整型,浮点型,短整型,长整型,双精度等数字类型的区分,</p>
+
+<p>所有的数字在Javascript里都是用8个字节来表示的.</p>
+
+<h4>1.Number对象</h4>
+
+<p>在JS语言中,有一个原始数字的包装对象Number
+Number对象有一些方法和属性,
+这个对象有如下一些属性</p>
+
+<ul>
+<li>MAX_VALUE  可表示的最大的数</li>
+<li>MIN_VALUE 可表示的最小的数</li>
+<li>NaN 非数字值</li>
+<li>NEGATIVE_INFINITY 负无穷大，溢出时返回该值</li>
+<li>POSITIVE_INFINITY 正无穷大，溢出时返回该值</li>
+</ul>
+
+
+<h4>2.数制</h4>
+
+<p>在JS中 八进制数是以0打头,十六进制数以0x开头
+每个数字都可以通过函数转换为对应进制</p>
+
+<div class="highlight"><pre><code class="js"><span class="kd">var</span> <span class="nx">num</span><span class="o">=</span><span class="mi">255</span><span class="p">;</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">writeln</span><span class="p">(</span><span class="nx">num</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; hex</span>
+<span class="s1">&#39;</span><span class="p">);</span> <span class="c1">// Outputs: ff</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">writeln</span><span class="p">(</span><span class="nx">num</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; octal</span>
+<span class="s1">&#39;</span><span class="p">);</span> <span class="c1">// Outputs: 377</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">writeln</span><span class="p">(</span><span class="nx">num</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; binary</span>
+<span class="s1">&#39;</span><span class="p">);</span> <span class="c1">// Outputs: 11111111</span>
+</code></pre></div>
+
+
+<h4>3.字符串和数的转换</h4>
+
+<p>这里介绍两个函数
+parseInt(string[, radix])和parseFloat(String)
+如果parseInt不给进制的参数的时候默认是十进制</p>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://geeklu.com">aslinwang</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2009-02-17">2009-02-17</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#programming" title="programming">programming</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#Javascript" title="Javascript">Javascript</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
+    var disqus_url = 'http://aslinwang.github.io/2009/02/numbers-in-javascript/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        url = 'http://aslinwang.github.io/2009/01/ibatis-auto-generated-primary-key/';
+        
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://aslinwang.github.io/2009/03/javascript-prototype-chain/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> | Copyright 2008 - 2014 by <a href="http://aslinwang.github.io/">aslinwang</a> | Template by <a href="http://geeklu.com/about/">Luke</a> | <span class="label label-info">2014-04-26 20:07:36</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

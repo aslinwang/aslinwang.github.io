@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="aslinwang" />
+    <title>关于Field Editor | aslinwang</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAD/APr59wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiIiIiIiAAAiIiIiIiIAACIiIiIiIgERERERERIiAREREREREiIBERERERESIgERIiIiERIiAREiIiIREiIBESIhERESIgERIiERERIiAREiIiIiIiIBESIiIiIiIgERIiIiIiIiAREREREREAABEREREREQAAERERERERAADgAQAA4AEAAOABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA8AAAAPAAAADwAA" rel="icon" type="image/x-icon" />
+    <link href="/feed/" rel="alternate" title="aslinwang" type="application/atom+xml" />
+    
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <link href='/media/webfonts/ss-social.css' rel='stylesheet'>
+    <link href='/media/webfonts/ss-standard.css' rel='stylesheet'>
+    <link href="/media/css/screen.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <div class="buttons">
+          <a href="/" class="ss-icon" title="Go to homepage">home</a>
+          <a href="/categories" class="ss-icon" title="Category" >list</a>
+          <a href="/tags" class="ss-icon" title="Tag Cloud" >tags</a>
+          <a href="/guestbook" class="ss-icon" title="Guest Book" >talk</a>
+          <a href="/about" class="ss-icon" title="About" >user</a>
+          <a href="/feed" class="ss-icon" title="Subscribe by RSS" >rss</a>
+        </div>
+        <h1>关于Field Editor</h1>
+        </header>
+        <hr>
+        <article class="content">
+        <section class="post">
+<h3>1.介绍</h3>
+
+<p>在Cocoa 中，每一个窗口中的所有NSControl对象(包括按钮，输入框NSTextField…)，都公用一个称之为Field Editor的对象(其实就是一个NSTextView的单例)。</p>
+
+<p>同一时间只可能有一个NSControl对象处于active状态。所以一个窗口会存在一个公用的Field Editor来处理界面中的所有NSControl对象的输入以及键盘响应。
+当一个NSControl对象Active的时候，一个Field Editor会被插入到responder chain中并作为first responder，所以这个时候你获取first responder并不是你的那个Text Field 而是这个Field Editor对象。
+这个时候view的层次是这样的，Field Editor的superview是一个<em>NSKeyboardFocusClipView对象，</em>NSKeyboardFocusClipView对象的superview才是Text Field。
+且Field Editor的delegate被设置成text field。</p>
+
+<p>当你用鼠标点击一个输入框，使其从一般状态进去编辑状态的时候，
+First Responder先是这个输入框，然后瞬间交给FieldEditor。所以如果你想测试这个，你可以写一个NSTextField的子类，并在becomeFirstResponder和resignFirstResponder中打log，这个时候你会发现 这两个方法会被连续的调用，之后Field Editor成为了FirstResponder。然后你将焦点再次转移到别的控件，这个时候Field Editor的resignFirstResponder会被调用，然后再在另一个NSControl中进行着上面的过程。</p>
+
+<h3>2.Field Editor的delegate方法</h3>
+
+<p>其实就是NSTextViewDelegate中定义的那些方法
+比如你想改变编辑时按 方向键的行为，你就需要subclass nstextfield并实现下面的方法，</p>
+
+<div class="highlight"><pre><code class="objc"><span class="k">-</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">textView:</span><span class="p">(</span><span class="n">NSTextView</span> <span class="o">*</span><span class="p">)</span><span class="nv">aTextView</span> <span class="nf">doCommandBySelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span>
+</code></pre></div>
+
+
+<h3>3.自定义的Field Editor</h3>
+
+<p>有时候，我们可能需要自定义输入框编辑状态下的外观或者行为，这个时候可能需要使用我们自己定义的Field Editor了，
+这里有两个方法，一个是subclass一个nswindow，然后覆盖下面的方法</p>
+
+<div class="highlight"><pre><code class="objc"><span class="k">-</span> <span class="p">(</span><span class="n">NSText</span> <span class="o">*</span><span class="p">)</span><span class="nf">fieldEditor:</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nv">createFlag</span> <span class="nf">forObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">anObject</span>
+</code></pre></div>
+
+
+<p>返回自定义的Field Editor，
+或者在NSWindowControl中实现一个nswindow的delegate方法</p>
+
+<div class="highlight"><pre><code class="objc"><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">windowWillReturnFieldEditor:</span><span class="p">(</span><span class="n">NSWindow</span> <span class="o">*</span><span class="p">)</span><span class="nv">sender</span> <span class="nf">toObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">anObject</span>
+</code></pre></div>
+
+
+<p>这里你可以返回你自定义的Field Editor，如果某些情况下还是需要使用系统默认的Field Editor，那么返回nil就可以了。</p>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://geeklu.com">aslinwang</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2011-07-13">2011-07-13</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#programming" title="programming">programming</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#Mac" title="Mac">Mac</a>&nbsp;
+  
+  <a href="/tags/#Cocoa" title="Cocoa">Cocoa</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
+    var disqus_url = 'http://aslinwang.github.io/2011/07/about-field-editor/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        url = 'http://aslinwang.github.io/2011/06/sqlite-autoincrement/';
+        
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://aslinwang.github.io/2011/08/mac-multi-display-screen-crop/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> | Copyright 2008 - 2014 by <a href="http://aslinwang.github.io/">aslinwang</a> | Template by <a href="http://geeklu.com/about/">Luke</a> | <span class="label label-info">2014-04-26 20:07:36</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

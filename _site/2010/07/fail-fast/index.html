@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="aslinwang" />
+    <title>Fail Fast | aslinwang</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAD/APr59wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiIiIiIiAAAiIiIiIiIAACIiIiIiIgERERERERIiAREREREREiIBERERERESIgERIiIiERIiAREiIiIREiIBESIhERESIgERIiERERIiAREiIiIiIiIBESIiIiIiIgERIiIiIiIiAREREREREAABEREREREQAAERERERERAADgAQAA4AEAAOABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA8AAAAPAAAADwAA" rel="icon" type="image/x-icon" />
+    <link href="/feed/" rel="alternate" title="aslinwang" type="application/atom+xml" />
+    
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <link href='/media/webfonts/ss-social.css' rel='stylesheet'>
+    <link href='/media/webfonts/ss-standard.css' rel='stylesheet'>
+    <link href="/media/css/screen.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <div class="buttons">
+          <a href="/" class="ss-icon" title="Go to homepage">home</a>
+          <a href="/categories" class="ss-icon" title="Category" >list</a>
+          <a href="/tags" class="ss-icon" title="Tag Cloud" >tags</a>
+          <a href="/guestbook" class="ss-icon" title="Guest Book" >talk</a>
+          <a href="/about" class="ss-icon" title="About" >user</a>
+          <a href="/feed" class="ss-icon" title="Subscribe by RSS" >rss</a>
+        </div>
+        <h1>Fail Fast</h1>
+        </header>
+        <hr>
+        <article class="content">
+        <section class="post">
+<p>Fail Fast从字面上看是“快速失败”的意思，或者叫做“速错”，其含义就是让可能发生的错误尽早的被发现。
+无论是人类，还是代码这个道理都是适用的。我们在做事的时候，犯错误是很常见的，但是我们应该尽量使得错误发生之初就被发现，并找出原因进行纠正。一开始不重视或者变相的处理了，这会使得错误延后，反而使得损失增大。
+还有个事例就是创业，我们就要抱着“如果要失败那就快点”的心态，加快自己前进的步伐。
+哈哈，说远了，今天主要说的是程序设计中的Fail Fast。</p>
+
+<p>在我们软件开发的过程中，当碰到问题了，我们第一步就是重现问题，然后进行debug，找出问题的原因，但往往有些bug隐藏的比较深，经过n次特定的操作的在特定的环境下才会重现，或者出错后，报错的stack traces的没有指出错误的真正起点。<br/>
+所以我们设计一个Fail Fast的系统显得很重要了。<br/>
+很多人设计的系统，为了增强系统的健壮性，自动的将系统中出现的问题处理掉，并继续运行，但是在未来的某个时间引发奇怪的错误。<br/>
+而fail fast的系统的做法却是相反的，当有问题发生，立即出错，并将出错信息显示出来。这样bug就很容易被发现，而不会进入到最终的产品中。<br/>
+比如下面的代码片段,假设maxConnections从一个配置文件中读取最大连接数这个数值，
+当发现读取到的值为null的时候，我们一般有两种做法，直接返回null或者返回一个默认值。<br/>
+(在JDK的HashMap的实现中也遵循fail fast原则，当获取遍历游标iterator之后，如果别的线程对map进行修改等操作会抛出异常的，因为这样会使得算法执行的环境发送变化，导致遍历过程中可能发生错误。)</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kt">int</span> <span class="nf">maxConnections</span><span class="o">()</span> <span class="o">{</span> 
+<span class="n">string</span> <span class="n">property</span> <span class="o">=</span><span class="n">getProperty</span><span class="o">(</span><span class="s">&quot;maxConnections&quot;</span><span class="o">);</span>
+ <span class="k">if</span> <span class="o">(</span><span class="n">property</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="mi">10</span><span class="o">;</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+     <span class="k">return</span> <span class="n">property</span><span class="o">.</span><span class="na">toInt</span><span class="o">();</span>
+ <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+
+
+<p>但是这在fail fast的原则下则应该如下</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kt">int</span> <span class="nf">maxConnections</span><span class="o">()</span> <span class="o">{</span> 
+      <span class="n">string</span> <span class="n">property</span> <span class="o">=</span><span class="n">getProperty</span><span class="o">(</span><span class="s">&quot;maxConnections&quot;</span><span class="o">);</span> 
+      <span class="k">if</span> <span class="o">(</span><span class="n">property</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+         <span class="k">throw</span> <span class="k">new</span> 
+                    <span class="nf">NullReferenceException</span> <span class="o">(</span>
+                          <span class="s">&quot;maxConnections property not found in&quot;</span>
+                          <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="na">configFilePath</span><span class="o">);</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">property</span><span class="o">.</span><span class="na">toInt</span><span class="o">();</span>
+     <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+
+
+<p>假设上面的代码是某个web应用的一部分，当某次升级的时候，不小心将maxConnections写错了，或者不小心删除了，那么如果采取默认值的情况的话，可能程序不会报错，但是运行之后可能会发现因为连接数变小了而使得应用很慢，且这个错误不便于查找，但是如果直接抛异常的话，错误就显而易见了。</p>
+
+<p>在很多时候，在系统中我们需要建立自己的错误异常处理体系，比如编写一系列的assert检测方法，并定义自己的异常类型，在正确的地方抛出异常。</p>
+
+<p>fail fast的方式可能使你感觉到软件的健壮性不是很好，的确它让我们更容易的找到错误，那么当我们最终将软件部署成产品的时候，还需要这样的写法么，很多时候我们在发布的时候都回将assert关闭，为了避免因为错误使得程序crash掉，但是真的有必要这么做么，其实没有必要，有时候线上的错误很少会发生，如果发生了错误，而不直接显示，那么我们开发人员找错误的时候，首先就需要重现问题，而这个可能很难重现出来。当然我们可以使得异常的方式处理的友好些。比如跳出一些错误异常窗口，然后询问是否将异常发生时的状态和错误信息发送给开发人员。
+这样将有助于软件bug的修复。</p>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://geeklu.com">aslinwang</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2010-07-19">2010-07-19</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#programming" title="programming">programming</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#Java" title="Java">Java</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
+    var disqus_url = 'http://aslinwang.github.io/2010/07/fail-fast/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        url = 'http://aslinwang.github.io/2010/07/jsonp/';
+        
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://aslinwang.github.io/2010/07/hash-table/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> | Copyright 2008 - 2014 by <a href="http://aslinwang.github.io/">aslinwang</a> | Template by <a href="http://geeklu.com/about/">Luke</a> | <span class="label label-info">2014-04-26 20:07:36</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

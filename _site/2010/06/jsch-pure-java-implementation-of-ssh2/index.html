@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="aslinwang" />
+    <title>Jsch – Pure Java implementation of SSH2 | aslinwang</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAD/APr59wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiIiIiIiAAAiIiIiIiIAACIiIiIiIgERERERERIiAREREREREiIBERERERESIgERIiIiERIiAREiIiIREiIBESIhERESIgERIiERERIiAREiIiIiIiIBESIiIiIiIgERIiIiIiIiAREREREREAABEREREREQAAERERERERAADgAQAA4AEAAOABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA8AAAAPAAAADwAA" rel="icon" type="image/x-icon" />
+    <link href="/feed/" rel="alternate" title="aslinwang" type="application/atom+xml" />
+    
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <link href='/media/webfonts/ss-social.css' rel='stylesheet'>
+    <link href='/media/webfonts/ss-standard.css' rel='stylesheet'>
+    <link href="/media/css/screen.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <div class="buttons">
+          <a href="/" class="ss-icon" title="Go to homepage">home</a>
+          <a href="/categories" class="ss-icon" title="Category" >list</a>
+          <a href="/tags" class="ss-icon" title="Tag Cloud" >tags</a>
+          <a href="/guestbook" class="ss-icon" title="Guest Book" >talk</a>
+          <a href="/about" class="ss-icon" title="About" >user</a>
+          <a href="/feed" class="ss-icon" title="Subscribe by RSS" >rss</a>
+        </div>
+        <h1>Jsch – Pure Java implementation of SSH2</h1>
+        </header>
+        <hr>
+        <article class="content">
+        <section class="post">
+<h2>一.SSH的介绍</h2>
+
+<p>SSH(Secure Shell)是一种网络协议,用于互联网上不同设备之间信息的安全传输.在安全性方面其使用了公钥的加密技术.
+关于SSH还有一个故事,以前有一个叫做Tatu Ylönen的芬兰程序员开发了一个叫做SSH的网络协议和服务程序,后来Tatu Ylönen对SSH源码的协议进行了改变,以至于远远超出了公开源代码许可的限度.这引起了很多依赖ssh的人的不满,于是OpenBSD的开发人员便着手开发自己的SSH,于是OpenSSH便诞生了.</p>
+
+<p>目前大都数的Linux中都运行着OpenSSH,为用户安全的提供远程登录管理和其他数据传输的功能.</p>
+
+<h2>二.JSCH的介绍</h2>
+
+<p>相对于C实现的openssh,今天我要说的是一个Java的SSH2实现,这样我们就可以完全通过java来调用ssh实现一些功能,比如通过jsch远程执行一些linux命令,或者通过jsch实现一个基于java的sftp客户端等等.</p>
+
+<p>JSCH的官方网站http://www.jcraft.com/jsch/
+Maven中的坐标http://mvnrepository.com/artifact/com.jcraft/jsch/0.1.42</p>
+
+<p>目前有许多项目都是用到了jsch:</p>
+
+<p>Ant(1.6 or later).
+JSch has been used for Ant’s sshexec and scp tasks.<br/>
+Eclipse(3.0).
+Our Eclipse-CVSSSH2 plug-in has been included in Eclipse SDK 3.0. This plug-in will allow you to get ssh2 accesses to remote CVS repository by JSch.<br/>
+NetBeans 5.0(and later)<br/>
+Jakarta Commons VFS<br/>
+Maven Wagon<br/>
+Rational Application Devloper for WebSphere Software<br/>
+HP Storage Essentials<br/>
+JIRA<br/>
+可惜的是JSCH并没有文档,所以很多时候只能看样例代码或者自己看api文档来摸索使用.
+在介绍如何使用之前先看下一个必要的知识.</p>
+
+<p>一个ssh的连接我们称之为一个Session,从一个建立好的Session中我们可以获取各种类型的Channel,每一种Channel的功能是不一样的.如exec通道是用来执行一个单独的命令并获得返回结果,shell远端终端方式的交互,sftp可以传输文件等,具体的通道类型可以看这里http://www.ssh.com/support/documentation/online/ssh/guardian/11/scb_ssh_channel_types.html</p>
+
+<p>通常我们本机的ssh的相关文件保存在~/.ssh目录下
+我们可以通过ssh-keygen -t rsa 来生成一对ras类型的公私钥.</p>
+
+<h2>三.代码片段示例</h2>
+
+<h3>1.初始化Session</h3>
+
+<p>JSch jsch = new JSch();
+//当然你也可以通过密码的方式进行用户的验证
+//密码的验证方式需要在下面使用session.setPassword("pass");
+jsch.addIdentity("/home/luke/.ssh/id_rsa");
+Session session = jsch.getSession("user", "hostname", 22);
+session.setConfig("StrictHostKeyChecking", "no");
+// making a connection with timeout.
+session.connect(30000);
+这样一个ssh的Session便建立好了,下面我们可以通过这个Session获取一些Channel,运行一些功能</p>
+
+<h3>2.exec channel 示例</h3>
+
+<div class="highlight"><pre><code class="java"><span class="n">Channel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="na">openChannel</span><span class="o">(</span><span class="s">&quot;exec&quot;</span><span class="o">);</span>
+<span class="c1">//command is your command to be exexuted</span>
+<span class="o">((</span><span class="n">ChannelExec</span><span class="o">)</span> <span class="n">channel</span><span class="o">).</span><span class="na">setCommand</span><span class="o">(</span><span class="n">command</span><span class="o">);</span>
+<span class="n">BufferedReader</span> <span class="n">fromServer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="na">io</span><span class="o">.</span><span class="na">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">InputStreamReader</span><span class="o">(</span>
+<span class="o">(</span><span class="n">channel</span><span class="o">.</span><span class="na">getInputStream</span><span class="o">())));</span>
+<span class="n">channel</span><span class="o">.</span><span class="na">connect</span><span class="o">();</span>
+<span class="n">StringBuffer</span> <span class="n">sb</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuffer</span><span class="o">();</span>
+<span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
+<span class="k">while</span> <span class="o">(</span><span class="n">fromServer</span><span class="o">.</span><span class="na">ready</span><span class="o">())</span> <span class="o">{</span>
+<span class="n">String</span> <span class="n">tt</span> <span class="o">=</span> <span class="n">fromServer</span><span class="o">.</span><span class="na">readLine</span><span class="o">();</span>
+<span class="n">sb</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">tt</span><span class="o">+</span><span class="sc">&#39;\n&#39;</span><span class="o">);</span>
+<span class="o">}</span>
+<span class="n">channel</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">sb</span><span class="o">.</span><span class="na">toString</span><span class="o">);</span>
+</code></pre></div>
+
+
+<p>在ssh的channel中,我们的输入输出都是建立在Java I/O的流模型之上的,
+Channel向远程服务的输出为OutputStream,远程机器返回的内容是通过Channel的InputStream,
+所以我们可以以流的形式向Channel的OutputStream放要传给远程机器的命令,也可以从Channel的InputStream中读取内容.(这一点在shell类型的channel中尤为重要)</p>
+
+<h3>3.sftp channel的代码片段示例</h3>
+
+<div class="highlight"><pre><code class="java"><span class="n">ChannelSftp</span> <span class="n">channel</span> <span class="o">=</span> <span class="o">(</span><span class="n">ChannelSftp</span><span class="o">)</span><span class="n">session</span><span class="o">.</span><span class="na">openChannel</span><span class="o">(</span><span class="s">&quot;sftp&quot;</span><span class="o">);</span>
+<span class="n">channel</span><span class="o">.</span><span class="na">connect</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
+<span class="n">channel</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;远程文件&quot;</span><span class="o">,</span> <span class="s">&quot;本地目录&quot;</span><span class="o">);</span>
+<span class="n">channel</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+</code></pre></div>
+
+
+<p>这样我们便实现了获取远程文件的功能,更多使用方法还请参阅官方jar包中的实例代码.</p>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://geeklu.com">aslinwang</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2010-06-26">2010-06-26</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#programming" title="programming">programming</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#Java" title="Java">Java</a>&nbsp;
+  
+  <a href="/tags/#SSH" title="SSH">SSH</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
+    var disqus_url = 'http://aslinwang.github.io/2010/06/jsch-pure-java-implementation-of-ssh2/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        url = 'http://aslinwang.github.io/2010/06/how-to-open-a-url-in-another-application/';
+        
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://aslinwang.github.io/2010/07/cometd-jetty-continuations/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> | Copyright 2008 - 2014 by <a href="http://aslinwang.github.io/">aslinwang</a> | Template by <a href="http://geeklu.com/about/">Luke</a> | <span class="label label-info">2014-04-26 20:07:36</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>

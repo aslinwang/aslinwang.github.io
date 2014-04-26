@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="author" content="aslinwang" />
+    <title>浅谈Gitosis实现原理 | aslinwang</title>
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAD/APr59wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiIiIiIiAAAiIiIiIiIAACIiIiIiIgERERERERIiAREREREREiIBERERERESIgERIiIiERIiAREiIiIREiIBESIhERESIgERIiERERIiAREiIiIiIiIBESIiIiIiIgERIiIiIiIiAREREREREAABEREREREQAAERERERERAADgAQAA4AEAAOABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA8AAAAPAAAADwAA" rel="icon" type="image/x-icon" />
+    <link href="/feed/" rel="alternate" title="aslinwang" type="application/atom+xml" />
+    
+    <link rel="stylesheet" href="/media/css/highlight.css">
+    <link href='/media/webfonts/ss-social.css' rel='stylesheet'>
+    <link href='/media/webfonts/ss-standard.css' rel='stylesheet'>
+    <link href="/media/css/screen.css" rel="stylesheet">
+
+    <script type="text/javascript" src="/media/js/jquery-1.7.1.min.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="main" role="main">
+        <header>
+        <div class="buttons">
+          <a href="/" class="ss-icon" title="Go to homepage">home</a>
+          <a href="/categories" class="ss-icon" title="Category" >list</a>
+          <a href="/tags" class="ss-icon" title="Tag Cloud" >tags</a>
+          <a href="/guestbook" class="ss-icon" title="Guest Book" >talk</a>
+          <a href="/about" class="ss-icon" title="About" >user</a>
+          <a href="/feed" class="ss-icon" title="Subscribe by RSS" >rss</a>
+        </div>
+        <h1>浅谈Gitosis实现原理</h1>
+        </header>
+        <hr>
+        <article class="content">
+        <section class="post">
+<p>git作为一个分布式的版本控制系统,其实client端和server的差别并不是很大，只是server端往往没有工作拷贝的需求，所以往往是一个裸库（bare repository），往往文件夹的名称为xxxx.git ，裸库的内容其实就相当于客户端某个工程下的.git目录了.     <br/>
+<br>
+使用git的时候，一般和服务器通讯使用的是ssh协议，用ssh的主要优点是速度快（传输前数据会先压缩，比HTTP快），安全，方便读写。
+客户端通过ssh访问服务器端的验证方式一般有两种，一种是用户名密码的方式，一种是使用公私钥认证的方式.
+使用公私钥的方式比较方便，无需每次登录输入密码。
+某个受信任的客户端的公钥会被设置在服务器端的 ~/.ssh/authorized_keys文件中，有关此文件的格式可以参见 sshd的用户手册  <code>man sshd</code> . authorized_keys有个比较厉害的功能是 支持 command参数，使得每次用户使用此公钥进行验证的时候执行此后面的命令.这样就可以做一些逻辑处理了.   <br/>
+<br>
+一般git库的管理需要权限控制，如何方便简单的进行库的权限管理呢？ authorized_keys是一个思路，指定特定command参数，每次验证好用户后首先执行相关逻辑，检测当前用户是否具有某个权限。
+所以便有了gitosis，与其说gitosis是一个git权限管理系统，还不如说它是一个authorized_keys文件管理器.   <br/>
+gitosis的设计思路很巧妙，开天辟地之初，需要一个gitosis的管理员，所以你就在你的客户端机器上生成一对公私钥，将公钥拷贝到git服务器端的/tmp/下，然后通过gitosis在git用户home目录下运行如下初始化命令，后面的公钥便是gitosis首个管理员的公钥</p>
+
+<div class="highlight"><pre><code class="bash">sudo -H -u git gitosis-init &lt; /tmp/id_rsa.pub
+</code></pre></div>
+
+
+<p>执行之后，home目录下出现一个repositories的目录，目录下存在一个gitosis-admin.git的git库. 其实gitosis就是通过这个git库来管理所有git库的访问权限的。  <br/>
+在刚才你的客户端机器上clone出这个库，因为你刚刚用你的公钥初始化了gitosis，所以你有权限访问服务器端的库（其实你可以在服务器端看看authorized_keys文件便知道原因了）。
+这个gitosis-admin的库中存在一个gitosis.conf和一个keydir的目录，gitosis.conf文件就是权限配置的地方，keydir目录下存放的是所有客户端的公钥，公钥名字必须和配置文件中的member名字对应.至于gitosis.conf的语法及用法可以去查看帮助。 <br/>
+当修改完配置和添加好需要添加的公钥之后，提交并push到git服务器，这个库的存在hook，当提交后，会根据新的配置和公钥去更新服务器端git用户的authorized_keys，以便加入新用户的公钥，用于权限控制命令，以及在裸库的目录下提取出新的gitosis.conf文件。<br/>
+<br>
+所以 gitosis的核心在于authorized_keys的command参数和git的hook功能.</p>
+
+</section>
+<section class="meta">
+<span class="author">
+  <a href="http://geeklu.com">aslinwang</a>
+</span>
+<span class="time">
+  /
+  <time datetime="2012-10-09">2012-10-09</time>
+</span>
+<br />
+<span class="license">
+  Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+</span>
+
+<span class="categories">
+  in categories
+  
+  <a href="/categories/#programming" title="programming">programming</a>&nbsp;
+  
+</span>
+
+
+<span class="tags">
+  tagged with 
+  
+  <a href="/tags/#Mac" title="Mac">Mac</a>&nbsp;
+  
+  <a href="/tags/#git" title="git">git</a>&nbsp;
+  
+  <a href="/tags/#gitosis" title="gitosis">gitosis</a>&nbsp;
+  
+  <a href="/tags/#Linux" title="Linux">Linux</a>&nbsp;
+  
+  <a href="/tags/#Python" title="Python">Python</a>&nbsp;
+  
+</span>
+
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
+    var disqus_url = 'http://aslinwang.github.io/2012/10/gitosis/';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+<script type="text/javascript">
+$(function(){
+  $(document).keydown(function(e) {
+    var url = false;
+        if (e.which == 37 || e.which == 74) {  // Left arrow and J
+            
+        url = 'http://aslinwang.github.io/2012/09/animation-in-ios/';
+        
+        }
+        else if (e.which == 39 || e.which == 75) {  // Right arrow and K
+            
+        url = 'http://aslinwang.github.io/2013/03/core-text/';
+        
+        }
+        if (url) {
+            window.location = url;
+        }
+  });
+})
+</script>
+
+
+        </article>
+      </div>
+
+    <footer>
+        <p><small>Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a> | Copyright 2008 - 2014 by <a href="http://aslinwang.github.io/">aslinwang</a> | Template by <a href="http://geeklu.com/about/">Luke</a> | <span class="label label-info">2014-04-26 20:07:36</span></small></p>
+    </footer>
+
+    </div>
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12936429-2']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>
