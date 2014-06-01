@@ -33,7 +33,7 @@ tags:
 
 ###fc.js
 实现一个ajax方法，用于发起一个http请求，如果在没有使用Fiddler的情况下使用，该请求会失败，然后设置此功能不可用，下次调用Fc.log时，直接返回。这样可以减小无效请求对页面性能的影响。代码片段如下：
-```javascript
+{% highlight javascript %}
 fc.log = function(){
     if(!fc.enable){
       return;
@@ -50,7 +50,7 @@ fc.log = function(){
       }
     });
 };
-```
+{% endhighlight %}
 
 ###FiddlerConsole插件
 Fiddler插件在.net平台使用C#语言开发，Fiddler官方提供了[开发文档](http://docs.telerik.com/fiddler/extend-fiddler/extendwithdotnet)。网络上Fiddler插件的开发资料相对而言比较少，需要反复查询官方文档。
