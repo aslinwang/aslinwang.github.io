@@ -62,7 +62,7 @@ Fiddler插件在.net平台使用C#语言开发，Fiddler官方提供了[开发�
 4. 关闭Fiddler的时候，删除插件产生的所有临时文件
 
 代码片段如下：
-```c#
+{% highlight c# %}
 public void AutoTamperRequestBefore(Session oSession)
 {
     if (oSession.host == HOST)//会话为console请求
@@ -101,7 +101,8 @@ public void OnBeforeUnload()
     //清空临时文件
     Array.ForEach(Directory.GetFiles(TEMP_PATH), File.Delete);
 }
-```
+{% endhighlight %}
+
 ###制作安装包
 插件的最终形态实际上是一个dll文件，安装包所做的工作只是将这个dll文件放到Fiddler安装目录的Scripts目录下，安装包使用inno setup制作，具体的使用方法不在此处展开。
 安装包同时需要具备以下功能：
