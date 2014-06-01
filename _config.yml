@@ -3,4 +3,7 @@ permalink: /:year/:month/:title/
 url: http://aslinwang.github.io
 author: aslinwang
 pygments: true
+markdown: redcarpet
+redcarpet:
+    extensions: ["fenced_code_blocks", "autolink", "tables", "strikethrough"]
 paginate: 24
