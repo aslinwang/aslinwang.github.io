@@ -155,10 +155,10 @@ node app.js -mobi 20140809
 {% endhighlight %}
 
 ##参考
-https://www.readability.com/developers/api/parser (readability文档)
-http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm (OPF格式规范)
-http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211 (kindlegen下载地址，注册账户所在国籍必须是美帝才能下载。。)
-http://aslinwang.u.qiniudn.com/Android_Training.mobi (利用此方法制作的Android官网Training文件)
+* https://www.readability.com/developers/api/parser (readability文档)
+* http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm (OPF格式规范)
+* http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211 (kindlegen下载地址，注册账户所在国籍必须是美帝才能下载。。)
+* http://aslinwang.u.qiniudn.com/Android_Training.mobi (利用此方法制作的Android官网Training文件)
 
 ##项目主页
 https://github.com/aslinwang/aslin
