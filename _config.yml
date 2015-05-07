@@ -4,6 +4,7 @@ url: http://aslinwang.github.io
 author: aslinwang
 pygments: true
 markdown: redcarpet
+highlighter: rouge
 redcarpet:
     extensions: ["fenced_code_blocks", "autolink", "tables", "strikethrough"]
 paginate: 24

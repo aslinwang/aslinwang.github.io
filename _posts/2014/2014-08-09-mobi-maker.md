@@ -143,7 +143,7 @@ cp.exec('kindlegen ' + dest, function(err, stdout, stderr){
     console.log('kindlegen log>>>', stdout);
     console.log('kindlegen err>>>', stderr);
 });
-{% endhighlight %}
+{% endhighlight %}``
 拿到mobi文件之后，后面的过程就是上传到kindle中了。
 
 ##使用方法
