@@ -224,7 +224,7 @@ function getTicket(token, cb){
 ##注意事项
 
 * access_token和jsapi_ticket有效期是7200s，开发者必须在自己的服务全局缓存这两个值
-* 绑定域名的公众号必须是通过微信认证
+* 绑定域名的公众号必须要通过微信认证
 * 以qq.com为根域名的页面，老的WeixinJSBridge方案仍然被兼容，但是建议都切到jssdk方案，以免随着后面微信版本的升级，不再兼容WeixinJSBridge方案
 * 公司内部josephzhou哥将jssdk做了一次封装，实现了自动获取timestamp,nonceStr,signature参数的过程，试用之后感觉挺方便的。申请接入，[点此了解](http://km.oa.com/group/1663/articles/show/215876)（公司内网地址）
 
