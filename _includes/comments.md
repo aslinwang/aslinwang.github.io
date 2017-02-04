@@ -1,5 +1,5 @@
 <section class="comment">
-<div class="ds-thread" data-thread-key="/guestbook/" data-title="留言" data-url="http://aslinwang.com/guestbook"></div>
+<div class="ds-thread" data-thread-key="{{ page.url | remove:'index.html' }}" data-title="{{page.title}}" data-url="{{ site.url }}{{ page.url | remove:'index.html' }}"></div>
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
     // var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
