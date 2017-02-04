@@ -1,5 +1,5 @@
 <section class="comment">
-<div id="disqus_thread"></div>
+<div class="ds-thread" data-thread-key="/guestbook/" data-title="留言" data-url="http://aslinwang.com/guestbook"></div>
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
     // var disqus_shortname = 'aslinwang'; // required: replace example with your forum shortname
@@ -22,6 +22,6 @@
          || document.getElementsByTagName('body')[0]).appendChild(ds);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<noscript>Please enable JavaScript to view the <a href="http://duoshuo.com">comments powered by DuoShuo.</a></noscript>
 </section>
 
