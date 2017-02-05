@@ -1,9 +1,7 @@
 permalink: /:year/:month/:title/
 url: http://aslinwang.github.io
 author: aslinwang
-pygments: true
-markdown: kramdown
 highlighter: rouge
-redcarpet:
-    extensions: ["fenced_code_blocks", "autolink", "tables", "strikethrough"]
+timezone: Asia/Shanghai
+gems: [jekyll-paginate]
 paginate: 24
