@@ -12,12 +12,13 @@ tags:
 在订制腾讯新闻客户端的汽车页卡时，有些页面是用HTML页面实现的。比如车系详情页，车型详情页。这类页面因为汽车运营的关系具有不定期更新的特点。比如车型降价，新车上市等。使用HTML页面之后，有些数据需要从客户端传递过来，也有一些数据需要从页面传递到客户端，也就是HTML与客户端之间通信的问题。
 
 ## Android平台
+
 ### Android调用JS
 {% highlight java %}
 WebView.loadUrl("javascript:onJsAndroid()");
 {% endhighlight %}
 
-###JS调用Android
+### JS调用Android
 {% highlight java %}
 // Android java代码
 mWebView.addJavascriptInterface(new Class(),"android");  
