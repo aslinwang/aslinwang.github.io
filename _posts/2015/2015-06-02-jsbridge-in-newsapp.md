@@ -14,11 +14,13 @@ tags:
 ## Android平台
 
 ### Android调用JS
+
 {% highlight java %}
 WebView.loadUrl("javascript:onJsAndroid()");
 {% endhighlight %}
 
 ### JS调用Android
+
 {% highlight java %}
 // Android java代码
 mWebView.addJavascriptInterface(new Class(),"android");  
@@ -115,6 +117,7 @@ function promptCall() {
 
 ## iOS平台
 ### iOS调用JS
+
 {% highlight objective-c %}
 // stringByEvaluatingJavaScriptFromString可以将字符串当做js来执行，在全局变量中定义js方法之后，OC就可以调用
 - (void)webViewDidFinishLoad:(UIWebView *)webView {  
