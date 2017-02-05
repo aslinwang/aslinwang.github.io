@@ -116,6 +116,7 @@ function promptCall() {
 将与native通信用到的接口挂载在window.XXX下，调用window.XXX.YYY就可以调用native的方法。
 
 ## iOS平台
+
 ### iOS调用JS
 
 {% highlight objective-c %}
