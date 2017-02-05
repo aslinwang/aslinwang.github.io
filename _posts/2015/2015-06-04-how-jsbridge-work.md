@@ -10,7 +10,7 @@ tags:
 
 在iOS中，TGJSBridge框架提供了一种obj-c与js通信的方案。使用TGJSBridge之后，js可以方便的调用native提供的原生方法来实现相应的逻辑。
 
-###TGJSBridge的使用
+### TGJSBridge的使用
 js端
 {% highlight javascript %}
 jsBridge.postNotification('setTitle', {
@@ -42,7 +42,7 @@ obj-c端
 {% endhighlight %}
 所以，obj-c端会先获取到TGJSBridge.js文件并执行，然后当js端发送“setTitle”通知之后，obj-c端会有相对应的方法来处理这个通知。但是，查看TGJSBridge的源码，并没有发现有定义包含“setTitleWithUserInfo”标记名的消息定义。所以为了了解通知具体是如何通过TGJSBridge从js端传递到obj-c端的，就需要看看TGJSBridge的实现原理。
 
-###TGJSBridge的原理
+### TGJSBridge的原理
 TGJSBridge框架包括两部分
 
 * TGJSBridge.js——定义JSBridge类，实现js与obj-c间互相发送通知、js绑定通知与解除绑定，以及js发送通知的具体方式
