@@ -8,11 +8,11 @@ tags:
 - jssdk
 ---
 
-##背景
+## 背景
 微信在升级到6.0版本之后，引入了jssdk。
 jssdk是微信公众平台面向网页开发者提供的基于微信内的网页开发工具包。通过jssdk，可以使用微信内的拍照、选图、语音、位置等手机系统的功能，还能使用微信分享、扫一扫、卡券、支付等功能。
 
-##问题
+## 问题
 jssdk的引入产生的一个问题就是，以前在页面中只要放入WeixinJSBridge，就能使用的分享功能，目前在新版本的微信就不好使了。
 {% highlight javascript %}
 function onBridgeReady(){
@@ -97,7 +97,7 @@ wx.config({
 {% endhighlight %}
 这里面比较棘手的就是需要传appId,timestamp,nonceStr,signature。而这些参数是需要依赖后台才能获得的。所以以前简单的分享功能，只需要前端同学一人搞定，现在就不行了，需要后台同学的配合，根据微信的jssdk使用权限签名算法来获取参数timestamp,nonceStr,signature
 
-##jssdk使用权限签名算法node版本
+## jssdk使用权限签名算法node版本
 但是，在可以运行node的环境下，前端还是可以自己搞定使用权限的签名。（好吧，精通全栈的牛人表示不用node也能搞定）。在实现签名算法之前，根据微信文档先在微信公众平台绑定域名，引入js文件。具体步骤参考[微信官方文档](http://mp.weixin.qq.com/wiki/7/aaa137b55fb2e0456bf8dd9148dd613f.html)
 {% highlight javascript %}
 var getSign = function(url){
@@ -221,12 +221,12 @@ function getTicket(token, cb){
 {% endhighlight %}
 拿到这几个参数之后，jssdk中的接口就可以随便使用了。
 
-##注意事项
+## 注意事项
 
 * access_token和jsapi_ticket有效期是7200s，开发者必须在自己的服务全局缓存这两个值
 * 绑定域名的公众号必须要通过微信认证
 * 以qq.com为根域名的页面，老的WeixinJSBridge方案仍然被兼容，但是建议都切到jssdk方案，以免随着后面微信版本的升级，不再兼容WeixinJSBridge方案
 * 公司内部josephzhou哥将jssdk做了一次封装，实现了自动获取timestamp,nonceStr,signature参数的过程，试用之后感觉挺方便的。申请接入，[点此了解](http://km.oa.com/group/1663/articles/show/215876)（公司内网地址）
 
-##参考
+## 参考
 * http://mp.weixin.qq.com/wiki/7/aaa137b55fb2e0456bf8dd9148dd613f.html
