@@ -8,11 +8,11 @@ tags:
 - avalon
 ---
 
-##avalon是什么鬼
+## avalon是什么鬼
 avalon是一个简单易用迷你的MVVM前端框架，为解决同一业务逻辑存在各种视图呈现而开发出来的。作者是前端大神司徒正美。
 avalon将前端代码彻底分为了两部分，视图的处理通过绑定实现，业务逻辑则更多集中在叫VM(ViewModel)的对象中处理。操作VM数据，就能自然的同步到视图。
 
-##avalon的优势
+## avalon的优势
 一个绝对的优势就是降低了耦合，让开发者从复杂的事件处理中挣脱出来。其他优势如下：
 
 * 使用简单，上手快。作者声称自己吃透knockout，angular，rivets API设计，avalon并没有太多复杂的概念，指令数量控制得当，基本覆盖所有jquery操作
@@ -26,7 +26,7 @@ avalon将前端代码彻底分为了两部分，视图的处理通过绑定实�
 
 avalon导论到此为止，下面是avalon试用体验。
 
-##一个avalon使用实例
+## 一个avalon使用实例
 上点代码来看看avalon具体要怎么玩
 {% highlight html %}
 <!DOCTYPE html>
@@ -57,7 +57,7 @@ avalon导论到此为止，下面是avalon试用体验。
 avalon.define可以定义一个ViewModel，在里面完成属性赋值，方法定义。"$id"就是指令"ms-controller"指定的controller值，通过"$id"可以将DOM和ViewModel结合起来。
 除此之外，类名操作、样式操作、循环操作、显示隐藏控制、数据联动、模板引用、事件处理及路由系统等多个特性。这些特性，本文并不会一一描述，但其中一些会在下一节相关部分中涉及。详细用法可参阅[司徒正美博客](http://www.cnblogs.com/rubylouvre/tag/avalon/default.html?page=1)
 
-##avalon实战
+## avalon实战
 最近在做一个腾讯汽车购车通新版本的购车计算器项目（广告植入：[购车通，帮您轻松购车!](http://auto.qq.com/mobile.htm)），主要内容是根据各种计算规则和数据选项，组合之后计算最终购车时需要付的款项。如图所示：
 ![设计图](http://78rdmv.com1.z0.glb.clouddn.com/calc.png)
 
@@ -190,12 +190,12 @@ prepayFee()方法用于计算贷款首付，管道符代表应用过滤器处理
 
 使用avalon之后，编码工作主要集中在对ViewModel的属性和方法的赋值和定义工作上，数据绑定、事件监听等工作在html中完成。从以往繁杂的事件监听和处理以及DOM操作中脱离出来。avalon还有模块管理、路由系统等强大的特性，可以用来构造SPA项目，本次项目中没有用到。
 
-##avalon的使用场景
+## avalon的使用场景
 在项目启动之初，也考虑过传统的zepto方案，但是看着复杂的界面交互和数据计算就放弃了。正好当前正接触avalon，所以就打算试用下。avalon比较适合这种强交互以及数据与视图相互关联的项目，比如内容管理系统之类的。对于偏重展示类型的页面和项目，实际上没有太大必要使用avalon。
 
 虚拟DOM框架react目前正大火，司徒正美也在着手要在avalon中引入虚拟DOM技术，代号为[avalon2](https://github.com/RubyLouvre/avalon2)，相信融合了react之后的MVVM框架，会给以后的开发带来另一种编程体验。
 
-##参考
+## 参考
 [avalon官网](http://avalonjs.github.io/)
 
 [avalon学习教程系列](http://www.cnblogs.com/rubylouvre/tag/avalon/default.html?page=1)
