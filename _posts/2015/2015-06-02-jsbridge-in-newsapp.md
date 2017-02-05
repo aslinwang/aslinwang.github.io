@@ -11,8 +11,8 @@ tags:
 
 在订制腾讯新闻客户端的汽车页卡时，有些页面是用HTML页面实现的。比如车系详情页，车型详情页。这类页面因为汽车运营的关系具有不定期更新的特点。比如车型降价，新车上市等。使用HTML页面之后，有些数据需要从客户端传递过来，也有一些数据需要从页面传递到客户端，也就是HTML与客户端之间通信的问题。
 
-##Android平台
-###Android调用JS
+## Android平台
+### Android调用JS
 {% highlight java %}
 WebView.loadUrl("javascript:onJsAndroid()");
 {% endhighlight %}
@@ -33,7 +33,7 @@ public class Class(){
 window.android.methodOne();
 {% endhighlight %}
 
-###弊端
+### 弊端
 在Android 4.2之前的版本中，通过addJavascriptInterface然后利用java的反射机制，可以回调java类中的内置静态变量。
 
 首先，通过java可以反弹shell，这样可以读写Android文件系统。
@@ -112,8 +112,8 @@ function promptCall() {
 
 将与native通信用到的接口挂载在window.XXX下，调用window.XXX.YYY就可以调用native的方法。
 
-##iOS平台
-###iOS调用JS
+## iOS平台
+### iOS调用JS
 {% highlight objective-c %}
 // stringByEvaluatingJavaScriptFromString可以将字符串当做js来执行，在全局变量中定义js方法之后，OC就可以调用
 - (void)webViewDidFinishLoad:(UIWebView *)webView {  
@@ -121,7 +121,7 @@ function promptCall() {
 }
 {% endhighlight %}
 
-###JS调用iOS
+### JS调用iOS
 js调用iOS，用到了开源库[TGJSBridge](https://github.com/ohsc/TGJSBridge)。其基本原理是利用伪协议"jsbridge://PostNotificationWithId-"，在native代码shouldStartLoadWithRequest中捕获并解析请求，然后调用相关的native逻辑。使用流程如下。
 {% highlight javascript %}
 // js向native发送修改页面标题的通知
@@ -204,7 +204,7 @@ nanoEvtProxy.on('iosnews:ready', function(e, data){
 
 以上流程中，各种事件的监听和触发确实比较绕。但是梳理下来，是可以保证页面标题能正常而且尽可能快的被设置的。
 
-##参考
+## 参考
 [WebView中接口隐患与手机挂马利用](http://drops.wooyun.org/papers/548)
 
 [【Android WebView】Js调用Native的四种方式](http://km.oa.com/group/18297/articles/show/217614)
