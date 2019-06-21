@@ -11,6 +11,7 @@
     //     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     // })();
 
+    /*
     var duoshuoQuery = {short_name : "aslinwang"};
     (function() {
         var ds = document.createElement('script');
@@ -20,7 +21,7 @@
         ds.charset = 'UTF-8';
         (document.getElementsByTagName('head')[0] 
          || document.getElementsByTagName('body')[0]).appendChild(ds);
-    })();
+    })();*/
 </script>
 <noscript>Please enable JavaScript to view the <a href="http://duoshuo.com">comments powered by DuoShuo.</a></noscript>
 </section>
